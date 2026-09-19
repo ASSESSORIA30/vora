@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 96" role="img" aria-label="VORA Concrete Living">
+  <g transform="translate(2 11)">
+    <path d="M3 59V4l56 15v40" fill="none" stroke="#24231F" stroke-width="2.6"/>
+    <path d="M3 59h72" fill="none" stroke="#9A8978" stroke-width="2.6"/>
+    <path d="M3 4l17 13v42" fill="#9A8978" opacity=".25"/>
+  </g>
+  <text x="92" y="52" fill="#24231F" font-family="Georgia, serif" font-size="52" letter-spacing="10">VORA</text>
+  <text x="96" y="78" fill="#9A8978" font-family="Arial, sans-serif" font-size="10" letter-spacing="5.8">CONCRETE LIVING</text>
+</svg>

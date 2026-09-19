@@ -1,0 +1,9 @@
+import { useEffect, useRef, useState } from 'react'
+import { gsap } from 'gsap'
+import BrandLogo from './BrandLogo'
+
+export default function Preloader({onComplete}){
+  const [count,setCount]=useState(0),containerRef=useRef(null),barRef=useRef(null),labelRef=useRef(null),brandRef=useRef(null)
+  useEffect(()=>{const duration=1800,start=performance.now();const tick=now=>{const progress=Math.min((now-start)/duration,1),eased=1-Math.pow(2,-10*progress);setCount(Math.round(eased*100));if(barRef.current)barRef.current.style.transform=`scaleX(${eased})`;if(progress<1)requestAnimationFrame(tick);else{gsap.timeline({onComplete:()=>onComplete?.()}).to(labelRef.current,{y:-40,opacity:0,duration:.65,ease:'expo.inOut'}).to(brandRef.current,{y:-40,opacity:0,duration:.65,ease:'expo.inOut'},'<.05').to(containerRef.current,{yPercent:-100,duration:1,ease:'expo.inOut'},'<.2')}};requestAnimationFrame(tick)},[onComplete])
+  return <div ref={containerRef} className="fixed inset-0 z-[100] bg-navy-800 text-cream-200 flex flex-col justify-between p-6 md:p-12"><div className="flex justify-between items-start"><div ref={brandRef}><BrandLogo light/></div><div className="section-label text-cream-200/60">COLLECTION / 2026</div></div><div ref={labelRef} className="flex items-end justify-between"><div><div className="section-label text-gold-300 mb-3">CONCRETE LIVING</div><div className="font-display text-[18vw] md:text-[12vw] leading-none tracking-tightest">{String(count).padStart(3,'0')}</div></div><div className="hidden md:block text-right max-w-xs"><div className="section-label text-cream-200/50 mb-2">VORA — 01 / 07</div><p className="text-sm text-cream-200/70 leading-relaxed">Arquitectura industrializada. Completamente equipada. Lista para vivir.</p></div></div><div className="relative w-full h-[1px] bg-cream-200/15 overflow-hidden"><div ref={barRef} className="absolute inset-0 bg-gold-300 preloader-bar"/></div></div>
+}
