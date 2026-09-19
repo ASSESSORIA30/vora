@@ -1,0 +1,8 @@
+import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
+const CONTENT={
+  'aviso-legal':['Aviso legal','La información mercantil del titular de VORA debe completarse antes de la activación comercial definitiva del sitio. El contenido de esta web tiene carácter informativo y comercial. Los modelos, superficies, planos, imágenes y equipamientos pueden estar sujetos a adaptación técnica, urbanística, estructural y contractual.'],
+  'privacidad':['Política de privacidad','Los datos enviados mediante el formulario se utilizarán únicamente para atender solicitudes comerciales relacionadas con VORA. Antes de activar campañas de captación deben completarse la identidad del responsable, base jurídica, plazos de conservación, destinatarios, derechos y canal de ejercicio conforme al RGPD y la normativa aplicable.'],
+  'cookies':['Política de cookies','La web puede activar medición de analítica y publicidad únicamente cuando se configuren los identificadores correspondientes. Antes de activar cookies no esenciales debe incorporarse una plataforma de consentimiento compatible con la normativa aplicable.'],
+}
+export default function LegalPage({type}){const [title,body]=CONTENT[type]||CONTENT['aviso-legal'];return <><Navbar forceLight/><main className="min-h-[70vh] bg-cream-200 pt-40 pb-28"><div className="max-w-[1000px] mx-auto px-6 md:px-12"><div className="section-label text-gold-400 mb-6">VORA · INFORMACIÓN LEGAL</div><h1 className="font-display text-display tracking-tightest">{title}</h1><p className="mt-10 text-lg leading-relaxed text-navy-700/70">{body}</p><p className="mt-8 text-sm text-navy-700/45">Última revisión: septiembre de 2026.</p></div></main><Footer/></>}

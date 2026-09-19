@@ -1,0 +1,3 @@
+import { useState } from 'react'
+import PlanView from './PlanView'
+export default function PlanTabs({plan}){ const [furnished,setFurnished]=useState(true); return <div><div className="mb-5 flex gap-2"><button onClick={()=>setFurnished(false)} className={`px-4 py-2 rounded-full border text-xs uppercase tracking-[.12em] ${!furnished?'bg-navy-700 text-cream-200 border-navy-700':'border-navy-700/20'}`}>Plano limpio</button><button onClick={()=>setFurnished(true)} className={`px-4 py-2 rounded-full border text-xs uppercase tracking-[.12em] ${furnished?'bg-navy-700 text-cream-200 border-navy-700':'border-navy-700/20'}`}>Amueblado</button></div><PlanView plan={plan} furnished={furnished}/></div> }

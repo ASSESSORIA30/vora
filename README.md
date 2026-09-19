@@ -1,61 +1,95 @@
-# VORA — Concrete Living
+# VORA · Concrete Living — Production SEO/SEM/AEO build
 
-Adaptación de la web editorial original a la nueva marca **VORA · Concrete Living**.
+Web Vite + React preparada para Vercel.
 
-## Qué se ha conservado
+## Despliegue
 
-- Estructura visual y ritmo editorial del proyecto original.
-- Preloader animado.
-- Smooth scroll con Lenis.
-- Animaciones GSAP y SplitType.
-- Colección horizontal con scroll en desktop.
-- Numeración de secciones, tipografía serif + sans y footer de gran formato.
+1. Sube este proyecto a GitHub/Vercel.
+2. Framework: **Vite**.
+3. Build command: `npm run build`.
+4. Output directory: `dist`.
+5. Para el dominio actual no hace falta definir `VITE_SITE_URL`; el fallback es `https://vora-orpin-delta.vercel.app`.
+6. Cuando VORA tenga dominio propio, define `VITE_SITE_URL=https://tudominio.com` en Vercel y vuelve a desplegar. Esto actualizará canonicals, sitemap, JSON-LD, Open Graph y llms.txt.
 
-## Qué se ha cambiado
+## Formulario de leads
 
-- Identidad completa a **VORA**.
-- Tagline: **Concrete Living**.
-- Nueva paleta mineral: carbón, hormigón, blanco piedra y bronce apagado.
-- Nuevo logo/mark integrado en navegación, menú y preloader.
-- Hero con vídeo desktop y vídeo móvil específicos.
-- Colección ampliada a 7 modelos: 90, 110, 130, 150, 170, 200 y Signature.
-- Mensaje comercial centrado en modelos cerrados, hormigón industrializado y vivienda completamente equipada.
-- Eliminadas cifras y promesas técnicas no validadas del proyecto anterior.
-- Galería sustituida por material visual VORA.
-- Formulario adaptado a parcela + modelo de interés.
+El formulario ya no simula envíos. Usa una Vercel Function (`/api/contact`) y Resend. Configura en Vercel:
 
-## Edición rápida
+- `RESEND_API_KEY`
+- `RESEND_FROM_EMAIL` — remitente de un dominio verificado en Resend.
+- `LEADS_EMAIL` — email interno donde quieres recibir los contactos.
 
-- Marca y ubicación: `src/config/brand.js`
-- Modelos: `src/data/houses.js`
-- Colores: `tailwind.config.js` y variables de `src/index.css`
-- Hero: `public/media/hero/`
-- Imágenes de modelos: `public/media/houses/`
+El formulario envía también atribución de campañas: UTM, gclid, gbraid, wbraid y fbclid cuando existan.
 
-## Contacto
+## Analítica y SEM
 
-Los datos de email/teléfono se han dejado fuera de la interfaz pública porque todavía no se han confirmado para VORA. Añádelos cuando se definan los canales de la nueva marca.
+Opcionales; no pongas valores inventados. Configura solo los que utilices:
 
-## Desarrollo
+- `VITE_GA4_ID=G-...`
+- `VITE_GOOGLE_ADS_ID=AW-...`
+- `VITE_META_PIXEL_ID=...`
+
+La medición se carga únicamente tras consentimiento. Se generan eventos en `dataLayer` como:
+
+- `select_model`
+- `view_model`
+- `configurator_change`
+- `cta_click`
+- `form_start`
+- `generate_lead`
+
+Puedes crear conversiones de Google Ads/GA4 a partir de `generate_lead`.
+
+## SEO / AEO
+
+El postbuild genera HTML indexable para:
+
+- `/modelos/vora-90`
+- `/modelos/vora-110`
+- `/modelos/vora-130`
+- `/modelos/vora-150`
+- `/modelos/vora-170`
+- `/modelos/vora-200`
+- `/modelos/vora-signature`
+- `/casas-industrializadas-hormigon`
+- `/casas-hormigon-llave-en-mano`
+- `/casas-modulares-premium`
+
+Además genera:
+
+- `sitemap.xml`
+- `robots.txt`
+- `llms.txt`
+- canonical URLs
+- Open Graph / Twitter metadata
+- JSON-LD de organización, web, colección y cada vivienda
+- HTML semántico de respaldo visible para crawlers que no ejecuten React
+
+`robots.txt` permite expresamente OAI-SearchBot y OAI-AdsBot.
+
+## IndexNow (Bing y motores compatibles)
+
+Opcional. Define:
+
+- `SITE_URL=https://tudominio.com`
+- `INDEXNOW_KEY=tu_clave`
+
+Haz un build con esa clave para publicar el fichero de verificación y, una vez desplegado, ejecuta:
 
 ```bash
-npm install
-npm run dev
+npm run indexnow
 ```
 
-## Producción
+## Legal
 
-```bash
-npm run build
-```
+Las páginas `/legal/*` están marcadas `noindex`. Antes de activar campañas comerciales debes completar con los datos reales del titular, política de privacidad y cookies. No se han inventado datos mercantiles.
 
-El proyecto usa Vite + React y puede desplegarse directamente en Vercel.
+## Planos
 
-## V2 premium refinement
+Los planos son conceptuales y comerciales. La web muestra expresamente:
 
-- Added cinematic full-screen model detail experience for all seven VORA models.
-- Replaced placeholder artwork for VORA 110, 150 and 170 with photorealistic exterior/interior imagery.
-- Reworked model cards to a wider editorial format better suited to architectural photography.
-- Refined brand copy across Hero, Concept, Collection, Everything Included and Atmosphere sections.
-- Expanded the visual gallery with the complete collection language.
-- No new runtime dependencies were added.
+> Distribución orientativa sujeta a adaptación técnica, urbanística y estructural.
+
+## Nota
+
+La web no publica costes internos ni datos del fabricante. El posicionamiento público es VORA · Concrete Living.
