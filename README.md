@@ -50,3 +50,12 @@ npm run build
 ```
 
 El proyecto usa Vite + React y puede desplegarse directamente en Vercel.
+
+## V2 premium refinement
+
+- Added cinematic full-screen model detail experience for all seven VORA models.
+- Replaced placeholder artwork for VORA 110, 150 and 170 with photorealistic exterior/interior imagery.
+- Reworked model cards to a wider editorial format better suited to architectural photography.
+- Refined brand copy across Hero, Concept, Collection, Everything Included and Atmosphere sections.
+- Expanded the visual gallery with the complete collection language.
+- No new runtime dependencies were added.

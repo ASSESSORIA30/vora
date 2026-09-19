@@ -43,14 +43,14 @@ export default function Hero() {
       <div className="absolute inset-0 hero-sidefade" />
       <div className="absolute top-0 left-0 right-0 pt-28 md:pt-32 px-6 md:px-12 z-10 pointer-events-none">
         <div className="flex justify-between items-start section-label text-cream-200/65 max-w-[1600px] mx-auto">
-          <span>VIVIENDAS DE HORMIGÓN · READY TO LIVE</span><span className="hidden md:inline">VORA / CONCRETE LIVING</span>
+          <span>ARQUITECTURA DE HORMIGÓN · READY TO LIVE</span><span className="hidden md:inline">VORA / CONCRETE LIVING</span>
         </div>
       </div>
       <div className="relative z-10 min-h-screen flex flex-col justify-end px-6 md:px-12 pb-12 md:pb-20 max-w-[1600px] mx-auto w-full">
         <div className="grid grid-cols-12 gap-4 md:gap-8 items-end">
           <div className="col-span-12 lg:col-span-8">
             <h1 ref={titleRef} className="font-display text-hero leading-[0.88] tracking-tightest text-cream-200">Tu casa.<br />Ya <em className="italic text-gold-200 font-light">resuelta.</em></h1>
-            <p ref={subtitleRef} className="mt-7 md:mt-9 max-w-lg text-base md:text-lg text-cream-200/82 leading-relaxed">Arquitectura industrializada de hormigón. Modelos cerrados, completamente terminados y equipados para entrar a vivir.</p>
+            <p ref={subtitleRef} className="mt-7 md:mt-9 max-w-lg text-base md:text-lg text-cream-200/82 leading-relaxed">Arquitectura de hormigón concebida como un producto completo. Diseñada, construida, equipada y preparada para vivir.</p>
           </div>
           <div className="col-span-12 lg:col-span-4 lg:pb-3">
             <div ref={metaRef} className="grid grid-cols-2 lg:block gap-6 lg:space-y-6 lg:text-right">
@@ -60,7 +60,7 @@ export default function Hero() {
           </div>
         </div>
         <div ref={ctaRef} className="mt-9 md:mt-12 flex flex-col md:flex-row items-start md:items-center gap-5 md:gap-9">
-          <button onClick={() => window.lenis?.scrollTo(document.querySelector('#models'), { offset: -20, duration: 1.6 })} className="btn-primary group bg-cream-200 !text-navy-700"><span>Explorar la colección</span><ArrowUpRight size={16} className="transition-transform duration-500 group-hover:translate-x-1 group-hover:-translate-y-1" /></button>
+          <button onClick={() => window.lenis?.scrollTo(document.querySelector('#models'), { offset: -20, duration: 1.6 })} className="btn-primary group bg-cream-200 !text-navy-700"><span>Descubrir la colección</span><ArrowUpRight size={16} className="transition-transform duration-500 group-hover:translate-x-1 group-hover:-translate-y-1" /></button>
           <button onClick={() => window.lenis?.scrollTo(document.querySelector('#about'), { offset: -20, duration: 1.6 })} className="flex items-center gap-3 text-sm font-medium text-cream-200 link-underline"><span className="w-8 h-8 rounded-full border border-cream-200/35 flex items-center justify-center"><ArrowDown size={12} /></span>Descubre el concepto</button>
         </div>
         <div ref={sideRef} className="mt-10 md:mt-16 pt-5 border-t border-cream-200/20 flex flex-col md:flex-row justify-between gap-3 text-xs text-cream-200/65"><span className="section-label">VORA · CONCRETE LIVING</span><span className="section-label"><span className="inline-block w-1.5 h-1.5 rounded-full bg-gold-200 mr-2 animate-shimmer" />COLECCIÓN 2026</span></div>
