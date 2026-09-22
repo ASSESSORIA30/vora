@@ -1,6 +1,8 @@
+import useMediaQuery from '../hooks/useMediaQuery'
 import { useEffect, useRef, useState } from 'react'
 
 export default function CustomCursor() {
+  const reducedMotion=useMediaQuery('(prefers-reduced-motion: reduce)')
   const dotRef = useRef(null)
   const ringRef = useRef(null)
   const [hidden, setHidden] = useState(false)
@@ -9,11 +11,12 @@ export default function CustomCursor() {
 
   useEffect(() => {
     // Don't render on touch devices
-    if (window.matchMedia('(hover: none)').matches) {
+    if (reducedMotion || window.matchMedia('(hover: none)').matches) {
       setHidden(true)
       return
     }
 
+    setHidden(false)
     let mouseX = window.innerWidth / 2
     let mouseY = window.innerHeight / 2
     let ringX = mouseX
@@ -69,7 +72,7 @@ export default function CustomCursor() {
       document.removeEventListener('mouseover', handleEnter)
       cancelAnimationFrame(raf)
     }
-  }, [hover])
+  }, [hover, reducedMotion])
 
   if (hidden) return null
 

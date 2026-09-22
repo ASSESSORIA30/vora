@@ -6,6 +6,11 @@ export const BRAND = {
   year: '2026',
   siteUrl: import.meta.env.VITE_SITE_URL || 'https://vora-orpin-delta.vercel.app',
   leadEndpoint: '/api/contact',
+  contact: {
+    email: import.meta.env.VITE_CONTACT_EMAIL || '',
+    phone: import.meta.env.VITE_CONTACT_PHONE || '',
+    whatsappUrl: import.meta.env.VITE_CONTACT_WHATSAPP_URL || '',
+  },
   analytics: {
     ga4Id: import.meta.env.VITE_GA4_ID || '',
     googleAdsId: import.meta.env.VITE_GOOGLE_ADS_ID || '',

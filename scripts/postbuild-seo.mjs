@@ -1,29 +1,224 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { HOUSES } from '../src/data/houses.js'
-const dist=path.resolve('dist');const base=process.env.VITE_SITE_URL||process.env.SITE_URL||'https://vora-orpin-delta.vercel.app';const template=await fs.readFile(path.join(dist,'index.html'),'utf8')
-const esc=s=>String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))
-const abs=u=>u.startsWith('http')?u:`${base}${u}`
-function render({title,description,pathname='/',image='/media/houses/model-07-exterior.webp',content,schema,robots='index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1'}){
-  let html=template.replace(/<title>.*?<\/title>/s,`<title>${esc(title)}</title>`).replace(/<meta name="description"[^>]*>/,`<meta name="description" content="${esc(description)}" />`)
-  const canonical=`${base}${pathname==='/'?'':pathname}`
-  const extra=`\n<link rel="canonical" href="${canonical}" />\n<meta name="robots" content="${robots}" />\n<meta property="og:type" content="website" />\n<meta property="og:locale" content="es_ES" />\n<meta property="og:site_name" content="VORA · Concrete Living" />\n<meta property="og:title" content="${esc(title)}" />\n<meta property="og:description" content="${esc(description)}" />\n<meta property="og:url" content="${canonical}" />\n<meta property="og:image" content="${abs(image)}" />\n<meta name="twitter:card" content="summary_large_image" />\n<meta name="twitter:title" content="${esc(title)}" />\n<meta name="twitter:description" content="${esc(description)}" />\n<meta name="twitter:image" content="${abs(image)}" />\n<script type="application/ld+json">${JSON.stringify(schema)}</script>\n`
-  html=html.replace('</head>',extra+'</head>').replace('<div id="root"></div>',`<div id="root">${content}</div>`);return html
+import { GUIDE_INDEX_SEO, GUIDE_PAGES, HOME_SEO, INDEXABLE_PATHS, LANDING_PAGES, modelSeo } from '../src/data/siteContent.js'
+
+const dist=path.resolve('dist')
+const base=(process.env.VITE_SITE_URL||process.env.SITE_URL||'https://vora-orpin-delta.vercel.app').replace(/\/$/,'')
+const template=await fs.readFile(path.join(dist,'index.html'),'utf8')
+const esc=(value)=>String(value).replace(/[&<>'"]/g,(character)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]))
+const abs=(url)=>url.startsWith('http')?url:`${base}${url}`
+const canonical=(pathname)=>`${base}${pathname==='/'?'':pathname}`
+const json=(value)=>JSON.stringify(value).replace(/</g,'\\u003c')
+
+const prerenderBundle=path.resolve('.prerender/prerender-entry.js')
+const {renderHome,renderModel,renderLanding,renderGuideIndex,renderGuide,renderLegal,renderNotFound}=await import(pathToFileURL(prerenderBundle).href)
+
+const organization={
+  '@type':'Organization',
+  '@id':`${base}/#organization`,
+  name:'VORA',
+  url:base,
+  logo:abs('/vora-logo-dark.svg'),
+  description:'Marca de viviendas industrializadas de hormigón completamente equipadas y preparadas para vivir.',
 }
-const org={"@type":"Organization","@id":`${base}/#organization`,name:'VORA',url:base,logo:abs('/vora-logo-dark.svg'),description:'Marca de viviendas industrializadas de hormigón completamente equipadas y preparadas para vivir.'}
-const homeSchema={"@context":"https://schema.org","@graph":[org,{"@type":"WebSite","@id":`${base}/#website`,url:base,name:'VORA · Concrete Living',publisher:{"@id":`${base}/#organization`},inLanguage:'es'},{"@type":"ItemList",name:'Colección VORA',itemListElement:HOUSES.map((h,i)=>({"@type":"ListItem",position:i+1,url:`${base}/modelos/${h.id}`,name:`VORA ${h.name}`}))}]}
-const homeContent=`<main style="min-height:100vh;background:#F0EEE9;color:#24231F;padding:48px;font-family:Arial,sans-serif"><h1>VORA · Concrete Living</h1><p>Viviendas industrializadas de hormigón, completamente equipadas y preparadas para vivir.</p><h2>Colección VORA</h2><ul>${HOUSES.map(h=>`<li><a href="/modelos/${h.id}">VORA ${esc(h.name)}</a> — ${esc(h.size)}, ${h.bedrooms} dormitorios, ${h.bathrooms} baños.</li>`).join('')}</ul><h2>Escoge tu casa. Nosotros hacemos el resto.</h2><p>Modelos cerrados con arquitectura, distribución, acabados y equipamiento concebidos como un único producto. Adaptamos técnicamente el modelo elegido a la parcela.</p></main>`
-await fs.writeFile(path.join(dist,'index.html'),render({title:'VORA Concrete Living | Casas industrializadas de hormigón listas para vivir',description:'VORA crea viviendas industrializadas de hormigón de 90 a 245 m², completamente terminadas, equipadas y preparadas para vivir.',content:homeContent,schema:homeSchema}))
-await fs.mkdir(path.join(dist,'modelos'),{recursive:true})
-for(const h of HOUSES){const pathname=`/modelos/${h.id}`;const schema={"@context":"https://schema.org","@graph":[org,{"@type":"WebPage",url:`${base}${pathname}`,name:h.seoTitle,description:h.seoDescription,mainEntity:{"@type":"SingleFamilyResidence",name:`VORA ${h.name}`,description:h.description,image:[abs(h.image),abs(h.interior)],floorSize:{"@type":"QuantitativeValue",value:parseInt(h.size),unitCode:'MTK'},additionalProperty:[{"@type":"PropertyValue",name:'Dormitorios',value:h.bedrooms},{"@type":"PropertyValue",name:'Baños',value:h.bathrooms},{"@type":"PropertyValue",name:'Superficie útil',value:`${h.usableSurface} m²`},{"@type":"PropertyValue",name:'Porche',value:`${h.porchSurface} m²`}],amenityFeature:h.features.map(f=>({"@type":"LocationFeatureSpecification",name:f,value:true}))}}]};const content=`<main style="background:#F0EEE9;color:#24231F;padding:48px;font-family:Arial,sans-serif"><p>VORA · Concrete Living</p><h1>VORA ${esc(h.name)}</h1><p>${esc(h.description)}</p><p><strong>${esc(h.size)}</strong> · ${h.bedrooms} dormitorios · ${h.bathrooms} baños · ${h.usableSurface} m² útiles · porche ${h.porchSurface} m².</p><h2>Distribución</h2><ul>${h.rooms.map(r=>`<li>${esc(r.name)} — ${String(r.area).replace('.',',')} m²</li>`).join('')}</ul><h2>Ready to live</h2><p>Cocina, electrodomésticos, mobiliario principal, iluminación, baños, climatización, armarios e instalaciones forman parte de la propuesta del modelo.</p><p>Distribución orientativa sujeta a adaptación técnica, urbanística y estructural.</p><p><a href="/#contact">Estudiar mi parcela</a></p></main>`;await fs.writeFile(path.join(dist,'modelos',`${h.id}.html`),render({title:h.seoTitle,description:h.seoDescription,pathname,image:h.image,content,schema}))}
-const landings={
-'casas-industrializadas-hormigon':['Casas industrializadas de hormigón | VORA Concrete Living','Descubre viviendas industrializadas de hormigón de arquitectura contemporánea, modelos cerrados y equipamiento completo ready to live.'],
-'casas-hormigon-llave-en-mano':['Casas de hormigón llave en mano y equipadas | VORA','Viviendas de hormigón construidas, terminadas, equipadas y amuebladas. Una experiencia ready to live desde la parcela hasta las llaves.'],
-'casas-modulares-premium':['Casas modulares premium de hormigón | VORA','Colección premium de casas industrializadas de hormigón con diseño mediterráneo contemporáneo y equipamiento completo.']}
-for(const [slug,[title,description]] of Object.entries(landings)){const content=`<main style="background:#F0EEE9;color:#24231F;padding:48px;font-family:Arial,sans-serif"><h1>${esc(title.split('|')[0])}</h1><p>${esc(description)}</p><h2>Qué diferencia a VORA</h2><p>Modelos cerrados, arquitectura contemporánea, fabricación industrializada y entrega completamente equipada. No empiezas una obra desde cero: eliges una casa ya resuelta y la adaptamos técnicamente a tu parcela.</p><h2>Modelos</h2><ul>${HOUSES.map(h=>`<li><a href="/modelos/${h.id}">VORA ${esc(h.name)}</a> — ${esc(h.size)}</li>`).join('')}</ul><p><a href="/#contact">Estudiar mi parcela</a></p></main>`;const schema={"@context":"https://schema.org","@graph":[org,{"@type":"WebPage",url:`${base}/${slug}`,name:title,description,about:['viviendas industrializadas','casas de hormigón','viviendas llave en mano']}]};await fs.writeFile(path.join(dist,`${slug}.html`),render({title,description,pathname:`/${slug}`,content,schema}))}
-await fs.mkdir(path.join(dist,'legal'),{recursive:true});for(const [slug,title] of [['aviso-legal','Aviso legal'],['privacidad','Política de privacidad'],['cookies','Política de cookies']]){await fs.writeFile(path.join(dist,'legal',`${slug}.html`),render({title:`${title} | VORA`,description:`${title} de VORA Concrete Living.`,pathname:`/legal/${slug}`,content:`<main style="padding:48px"><h1>${title}</h1><p>Consulta la versión interactiva de esta página para la información vigente.</p></main>`,schema:{"@context":"https://schema.org","@type":"WebPage",name:title,url:`${base}/legal/${slug}`},robots:'noindex,follow'}))}
-const urls=['',...HOUSES.map(h=>`/modelos/${h.id}`),...Object.keys(landings).map(s=>`/${s}`)];const today=new Date().toISOString().slice(0,10);await fs.writeFile(path.join(dist,'sitemap.xml'),`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(u=>`<url><loc>${base}${u}</loc><lastmod>${today}</lastmod><changefreq>${u?'monthly':'weekly'}</changefreq><priority>${u?'.8':'1.0'}</priority></url>`).join('')}</urlset>`)
-await fs.writeFile(path.join(dist,'robots.txt'),`User-agent: *\nAllow: /\n\nUser-agent: OAI-SearchBot\nAllow: /\n\nUser-agent: OAI-AdsBot\nAllow: /\n\nSitemap: ${base}/sitemap.xml\n`)
-await fs.writeFile(path.join(dist,'llms.txt'),`# VORA · Concrete Living\n\nVORA es una marca de viviendas industrializadas de hormigón, completamente equipadas y preparadas para vivir.\n\n## Concepto\n- Modelos cerrados y optimizados: no se diseña cada vivienda desde cero.\n- Adaptación técnica, urbanística y estructural a la parcela.\n- Entrega ready to live: cocina, electrodomésticos, mobiliario principal, iluminación, baños y climatización.\n- Colección: VORA 90, 110, 130, 150, 170, 200 y Signature.\n\n## URLs principales\n${HOUSES.map(h=>`- VORA ${h.name}: ${base}/modelos/${h.id}`).join('\n')}\n- Casas industrializadas de hormigón: ${base}/casas-industrializadas-hormigon\n- Hormigón llave en mano: ${base}/casas-hormigon-llave-en-mano\n\nLos planos y superficies son comerciales y conceptuales, sujetos a adaptación técnica, urbanística y estructural.\n`)
-if(process.env.INDEXNOW_KEY) await fs.writeFile(path.join(dist,`${process.env.INDEXNOW_KEY}.txt`),process.env.INDEXNOW_KEY)
-console.log(`SEO postbuild complete: ${urls.length} indexable URLs at ${base}`)
+
+const website={
+  '@type':'WebSite',
+  '@id':`${base}/#website`,
+  url:base,
+  name:'VORA · Concrete Living',
+  publisher:{'@id':organization['@id']},
+  inLanguage:'es',
+}
+
+function breadcrumbs(pathname,currentName){
+  const isModel=pathname.startsWith('/modelos/')
+  const isGuide=pathname.startsWith('/guias/')
+  const items=[
+    {'@type':'ListItem',position:1,name:'Inicio',item:base},
+    ...(isModel?[{'@type':'ListItem',position:2,name:'Modelos',item:`${base}/#models`}]:[]),
+    ...(isGuide?[{'@type':'ListItem',position:2,name:'Guías',item:`${base}/guias`}]:[]),
+    {'@type':'ListItem',position:isModel||isGuide?3:2,name:currentName,item:canonical(pathname)},
+  ]
+  return {'@type':'BreadcrumbList','@id':`${canonical(pathname)}#breadcrumbs`,itemListElement:items}
+}
+
+function documentHtml({title,description,pathname='/',image='/media/hero/hero-desktop-poster.jpg',imageAlt='VORA · Concrete Living',content,schema=[],robots='index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1',includeCanonical=true}){
+  let html=template
+    .replace(/<title>.*?<\/title>/s,`<title>${esc(title)}</title>`)
+    .replace(/<meta name="description"[^>]*>/,`<meta name="description" content="${esc(description)}" />`)
+    .replace('<div id="root"></div>',`<div id="root" data-prerendered="true">${content}</div>`)
+  if(pathname!=='/')html=html.replace(/\s*<link rel="preload" as="image" href="\/media\/hero\/hero-(?:desktop|mobile)-poster\.jpg" media="[^"]+" \/>/g,'')
+  const url=canonical(pathname)
+  const graph=Array.isArray(schema)?schema:[schema]
+  const extra=`
+${includeCanonical?`<link rel="canonical" href="${url}" />`:''}
+<meta name="robots" content="${robots}" />
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="es_ES" />
+<meta property="og:site_name" content="VORA · Concrete Living" />
+<meta property="og:title" content="${esc(title)}" />
+<meta property="og:description" content="${esc(description)}" />
+<meta property="og:url" content="${url}" />
+<meta property="og:image" content="${abs(image)}" />
+<meta property="og:image:alt" content="${esc(imageAlt)}" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="${esc(title)}" />
+<meta name="twitter:description" content="${esc(description)}" />
+<meta name="twitter:image" content="${abs(image)}" />
+${graph.length?`<script type="application/ld+json">${json({'@context':'https://schema.org','@graph':graph})}</script>`:''}
+`
+  return html.replace('</head>',`${extra}</head>`)
+}
+
+async function writeHtml(relativePath,options){
+  const output=path.join(dist,relativePath)
+  await fs.mkdir(path.dirname(output),{recursive:true})
+  await fs.writeFile(output,documentHtml(options))
+}
+
+const homeItemList={
+  '@type':'ItemList',
+  '@id':`${base}/#models`,
+  name:'Colección VORA',
+  itemListElement:HOUSES.map((house,index)=>({'@type':'ListItem',position:index+1,url:`${base}/modelos/${house.id}`,name:`VORA ${house.name}`})),
+}
+await writeHtml('index.html',{
+  ...HOME_SEO,
+  content:renderHome(),
+  schema:[organization,website,homeItemList],
+})
+
+for(const house of HOUSES){
+  const pathname=`/modelos/${house.id}`
+  const meta=modelSeo(house)
+  const breadcrumb=breadcrumbs(pathname,`VORA ${house.name}`)
+  const webpage={
+    '@type':'WebPage',
+    '@id':`${canonical(pathname)}#webpage`,
+    url:canonical(pathname),
+    name:meta.title,
+    description:meta.description,
+    isPartOf:{'@id':website['@id']},
+    breadcrumb:{'@id':breadcrumb['@id']},
+    primaryImageOfPage:{'@type':'ImageObject',url:abs(house.image)},
+    about:{'@type':'Thing',name:`VORA ${house.name}`,description:house.description},
+    inLanguage:'es',
+  }
+  await writeHtml(`modelos/${house.id}.html`,{
+    ...meta,
+    pathname,
+    image:house.image,
+    imageAlt:`Exterior VORA ${house.name}`,
+    content:renderModel(house),
+    schema:[organization,website,breadcrumb,webpage],
+  })
+}
+
+for(const [slug,page] of Object.entries(LANDING_PAGES)){
+  const pathname=`/${slug}`
+  const breadcrumb=breadcrumbs(pathname,page.title)
+  const webpage={
+    '@type':'WebPage',
+    '@id':`${canonical(pathname)}#webpage`,
+    url:canonical(pathname),
+    name:page.seoTitle,
+    description:page.seoDescription,
+    isPartOf:{'@id':website['@id']},
+    breadcrumb:{'@id':breadcrumb['@id']},
+    primaryImageOfPage:{'@type':'ImageObject',url:abs(page.image)},
+    inLanguage:'es',
+  }
+  const faq={
+    '@type':'FAQPage',
+    '@id':`${canonical(pathname)}#faq`,
+    mainEntity:page.faqs.map(({question,answer})=>({'@type':'Question',name:question,acceptedAnswer:{'@type':'Answer',text:answer}})),
+  }
+  await writeHtml(`${slug}.html`,{
+    title:page.seoTitle,
+    description:page.seoDescription,
+    pathname,
+    image:page.image,
+    imageAlt:page.imageAlt,
+    content:renderLanding(slug),
+    schema:[organization,website,breadcrumb,webpage,faq],
+  })
+}
+
+const guideIndexPath='/guias'
+const guideIndexBreadcrumb=breadcrumbs(guideIndexPath,'Guías')
+const guideItemList={
+  '@type':'ItemList',
+  '@id':`${canonical(guideIndexPath)}#guides`,
+  name:'Guías VORA',
+  itemListElement:Object.entries(GUIDE_PAGES).map(([slug,guide],index)=>({'@type':'ListItem',position:index+1,url:`${base}/guias/${slug}`,name:guide.title})),
+}
+await writeHtml('guias.html',{
+  ...GUIDE_INDEX_SEO,
+  pathname:guideIndexPath,
+  content:renderGuideIndex(),
+  schema:[organization,website,guideIndexBreadcrumb,guideItemList,{'@type':'WebPage','@id':`${canonical(guideIndexPath)}#webpage`,url:canonical(guideIndexPath),name:GUIDE_INDEX_SEO.title,description:GUIDE_INDEX_SEO.description,isPartOf:{'@id':website['@id']},breadcrumb:{'@id':guideIndexBreadcrumb['@id']},inLanguage:'es'}],
+})
+
+for(const [slug,guide] of Object.entries(GUIDE_PAGES)){
+  const pathname=`/guias/${slug}`
+  const breadcrumb=breadcrumbs(pathname,guide.title)
+  const webpage={
+    '@type':'WebPage',
+    '@id':`${canonical(pathname)}#webpage`,
+    url:canonical(pathname),
+    name:guide.seoTitle,
+    description:guide.seoDescription,
+    isPartOf:{'@id':website['@id']},
+    breadcrumb:{'@id':breadcrumb['@id']},
+    primaryImageOfPage:{'@type':'ImageObject',url:abs(guide.image)},
+    inLanguage:'es',
+  }
+  await writeHtml(`guias/${slug}.html`,{
+    title:guide.seoTitle,
+    description:guide.seoDescription,
+    pathname,
+    image:guide.image,
+    imageAlt:guide.imageAlt,
+    content:renderGuide(slug),
+    schema:[organization,website,breadcrumb,webpage],
+  })
+}
+
+const legalPages={
+  'aviso-legal':'Aviso legal',
+  privacidad:'Política de privacidad',
+  cookies:'Política de cookies',
+}
+for(const [slug,title] of Object.entries(legalPages)){
+  const pathname=`/legal/${slug}`
+  await writeHtml(`legal/${slug}.html`,{
+    title:`${title} | VORA`,
+    description:`${title} de VORA Concrete Living.`,
+    pathname,
+    content:renderLegal(slug),
+    schema:[{'@type':'WebPage',url:canonical(pathname),name:title,inLanguage:'es'}],
+    robots:'noindex,follow',
+  })
+}
+
+await writeHtml('404.html',{
+  title:'Página no encontrada | VORA',
+  description:'La página solicitada no existe. Consulta la colección de modelos VORA.',
+  pathname:'/404',
+  content:renderNotFound(),
+  schema:[],
+  robots:'noindex,nofollow',
+  includeCanonical:false,
+})
+
+const sitemapUrls=INDEXABLE_PATHS.map((pathname)=>`<url><loc>${canonical(pathname)}</loc></url>`).join('')
+await fs.writeFile(path.join(dist,'sitemap.xml'),`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${sitemapUrls}</urlset>\n`)
+await fs.writeFile(path.join(dist,'robots.txt'),`User-agent: *\nAllow: /\n\nSitemap: ${base}/sitemap.xml\n`)
+await fs.writeFile(path.join(dist,'llms.txt'),`# VORA · Concrete Living\n\nVORA presenta una colección de viviendas industrializadas de hormigón, completamente equipadas y preparadas para vivir.\n\n## Información principal\n- La colección se compone de siete modelos cerrados.\n- Cada modelo tiene una ficha con capacidad, características y distribución.\n- La adaptación estudia el encaje técnico, urbanístico y estructural del modelo en la parcela.\n- La propuesta ready to live integra los elementos indicados en el sitio web.\n\n## Páginas canónicas\n${INDEXABLE_PATHS.map((pathname)=>`- ${canonical(pathname)}`).join('\n')}\n\nLos planos son conceptuales y están sujetos a la adaptación técnica, urbanística y estructural correspondiente.\n`)
+if(process.env.INDEXNOW_KEY)await fs.writeFile(path.join(dist,`${process.env.INDEXNOW_KEY}.txt`),process.env.INDEXNOW_KEY)
+
+await fs.rm(path.dirname(prerenderBundle),{recursive:true,force:true})
+console.log(`SEO postbuild complete: ${INDEXABLE_PATHS.length} indexable URLs, 3 noindex legal pages and one 404 at ${base}`)

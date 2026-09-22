@@ -1,4 +1,6 @@
-export const HOUSES = [
+// "size" is retained as a legacy presentation label. Its semantic meaning is pending validation,
+// so surfaces.built remains null until the source data is confirmed.
+const HOUSE_DATA = [
   {
     "id": "vora-90",
     "code": "V—01",
@@ -22,41 +24,93 @@ export const HOUSES = [
       "Una planta"
     ],
     "idealFor": "Parejas, familias pequeñas y segunda residencia.",
-    "usableSurface": 78,
-    "porchSurface": 18,
     "dimensions": "10,8 × 9,4 m aprox.",
+    "slug": "vora-90",
+    "seoTitle": "VORA 90 | Casa industrializada de hormigón 90 m²",
+    "seoDescription": "Descubre VORA 90: vivienda industrializada de hormigón de 90 m², 3 dormitorios y 2 baños, completamente equipada y preparada para vivir.",
+    "surfaces": {
+      "built": null,
+      "useful": 78,
+      "porch": 18,
+      "garage": null,
+      "terrace": null,
+      "pool": null
+    },
+    "validationStatus": "verified",
     "rooms": [
       {
+        "id": "salon-comedor-cocina",
         "name": "Salón-comedor-cocina",
-        "area": 32.8
+        "area": 32.8,
+        "type": "room",
+        "listed": true
       },
       {
+        "id": "suite-principal",
         "name": "Suite principal",
-        "area": 12.1
+        "area": 12.1,
+        "type": "suite",
+        "listed": true,
+        "planLabel": "Suite"
       },
       {
+        "id": "bano-suite",
         "name": "Baño suite",
-        "area": 3.8
+        "area": 3.8,
+        "type": "bath",
+        "listed": true
       },
       {
+        "id": "dormitorio-2",
         "name": "Dormitorio 2",
-        "area": 9.4
+        "area": 9.4,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "dormitorio-3",
         "name": "Dormitorio 3",
-        "area": 9.2
+        "area": 9.2,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "bano-general",
         "name": "Baño general",
-        "area": 4.2
+        "area": 4.2,
+        "type": "bath",
+        "listed": true,
+        "planLabel": "Baño"
       },
       {
+        "id": "lavadero-tecnico",
         "name": "Lavadero / técnico",
-        "area": 3.3
+        "area": 3.3,
+        "type": "laundry",
+        "listed": true,
+        "planLabel": "Lavadero"
       },
       {
+        "id": "distribucion-y-armarios",
         "name": "Distribución y armarios",
-        "area": 3.2
+        "area": 3.2,
+        "type": "hall",
+        "listed": true,
+        "planLabel": "Entrada"
+      },
+      {
+        "id": "salon-comedor",
+        "name": "Salón · comedor",
+        "area": 21.5,
+        "type": "living",
+        "listed": false
+      },
+      {
+        "id": "cocina",
+        "name": "Cocina",
+        "area": 11.3,
+        "type": "kitchen",
+        "listed": false
       }
     ],
     "plan": {
@@ -64,9 +118,7 @@ export const HOUSES = [
       "depthM": 9.4,
       "rooms": [
         {
-          "name": "Salón · comedor",
-          "type": "living",
-          "area": 21.5,
+          "roomId": "salon-comedor",
           "x": 3,
           "y": 4,
           "w": 43,
@@ -75,9 +127,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Cocina",
-          "type": "kitchen",
-          "area": 11.3,
+          "roomId": "cocina",
           "x": 3,
           "y": 51,
           "w": 43,
@@ -86,9 +136,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Dormitorio 2",
-          "type": "bedroom",
-          "area": 9.4,
+          "roomId": "dormitorio-2",
           "x": 46,
           "y": 4,
           "w": 25,
@@ -97,9 +145,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Dormitorio 3",
-          "type": "bedroom",
-          "area": 9.2,
+          "roomId": "dormitorio-3",
           "x": 71,
           "y": 4,
           "w": 26,
@@ -108,9 +154,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Baño",
-          "type": "bath",
-          "area": 4.2,
+          "roomId": "bano-general",
           "x": 46,
           "y": 32,
           "w": 18,
@@ -118,9 +162,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Lavadero",
-          "type": "laundry",
-          "area": 3.3,
+          "roomId": "lavadero-tecnico",
           "x": 64,
           "y": 32,
           "w": 17,
@@ -128,9 +170,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Baño suite",
-          "type": "bath",
-          "area": 3.8,
+          "roomId": "bano-suite",
           "x": 81,
           "y": 32,
           "w": 16,
@@ -138,9 +178,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Suite",
-          "type": "suite",
-          "area": 12.1,
+          "roomId": "suite-principal",
           "x": 46,
           "y": 52,
           "w": 51,
@@ -149,9 +187,7 @@ export const HOUSES = [
           "door": "left"
         },
         {
-          "name": "Entrada",
-          "type": "hall",
-          "area": 3.2,
+          "roomId": "distribucion-y-armarios",
           "x": 46,
           "y": 82,
           "w": 20,
@@ -159,10 +195,7 @@ export const HOUSES = [
           "door": "bottom"
         }
       ]
-    },
-    "slug": "vora-90",
-    "seoTitle": "VORA 90 | Casa industrializada de hormigón 90 m²",
-    "seoDescription": "Descubre VORA 90: vivienda industrializada de hormigón de 90 m², 3 dormitorios y 2 baños, completamente equipada y preparada para vivir."
+    }
   },
   {
     "id": "vora-110",
@@ -187,45 +220,105 @@ export const HOUSES = [
       "Porche"
     ],
     "idealFor": "Familias que buscan una vivienda principal cómoda y contenida.",
-    "usableSurface": 95,
-    "porchSurface": 24,
     "dimensions": "13,2 × 9,3 m aprox.",
+    "slug": "vora-110",
+    "seoTitle": "VORA 110 | Casa industrializada de hormigón 110 m²",
+    "seoDescription": "Descubre VORA 110: vivienda industrializada de hormigón de 110 m², 3 dormitorios y 2 baños, completamente equipada y preparada para vivir.",
+    "surfaces": {
+      "built": null,
+      "useful": 95,
+      "porch": 24,
+      "garage": null,
+      "terrace": null,
+      "pool": null
+    },
+    "validationStatus": "pending",
     "rooms": [
       {
+        "id": "salon-comedor-cocina",
         "name": "Salón-comedor-cocina",
-        "area": 37.2
+        "area": 37.2,
+        "type": "room",
+        "listed": true
       },
       {
+        "id": "suite-principal",
         "name": "Suite principal",
-        "area": 13.5
+        "area": 13.5,
+        "type": "suite",
+        "listed": true,
+        "planLabel": "Suite"
       },
       {
+        "id": "bano-suite",
         "name": "Baño suite",
-        "area": 4.4
+        "area": 4.4,
+        "type": "bath",
+        "listed": true
       },
       {
+        "id": "dormitorio-2",
         "name": "Dormitorio 2",
-        "area": 10.2
+        "area": 10.2,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "dormitorio-3",
         "name": "Dormitorio 3",
-        "area": 10
+        "area": 10,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "bano-general",
         "name": "Baño general",
-        "area": 4.8
+        "area": 4.8,
+        "type": "bath",
+        "listed": true,
+        "planLabel": "Baño"
       },
       {
+        "id": "lavadero",
         "name": "Lavadero",
-        "area": 4.1
+        "area": 4.1,
+        "type": "laundry",
+        "listed": true
       },
       {
+        "id": "despensa",
         "name": "Despensa",
-        "area": 2.7
+        "area": 2.7,
+        "type": "pantry",
+        "listed": true
       },
       {
+        "id": "distribucion",
         "name": "Distribución",
-        "area": 8.1
+        "area": 8.1,
+        "type": "room",
+        "listed": true
+      },
+      {
+        "id": "salon-comedor",
+        "name": "Salón · comedor",
+        "area": 24.2,
+        "type": "living",
+        "listed": false
+      },
+      {
+        "id": "cocina",
+        "name": "Cocina",
+        "area": 13,
+        "type": "kitchen",
+        "listed": false
+      },
+      {
+        "id": "entrada",
+        "name": "Entrada",
+        "area": 6.1,
+        "type": "hall",
+        "listed": false
       }
     ],
     "plan": {
@@ -233,9 +326,7 @@ export const HOUSES = [
       "depthM": 9.3,
       "rooms": [
         {
-          "name": "Salón · comedor",
-          "type": "living",
-          "area": 24.2,
+          "roomId": "salon-comedor",
           "x": 3,
           "y": 4,
           "w": 37,
@@ -244,9 +335,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Cocina",
-          "type": "kitchen",
-          "area": 13,
+          "roomId": "cocina",
           "x": 3,
           "y": 57,
           "w": 37,
@@ -255,9 +344,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Despensa",
-          "type": "pantry",
-          "area": 2.7,
+          "roomId": "despensa",
           "x": 3,
           "y": 82,
           "w": 15,
@@ -265,9 +352,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Lavadero",
-          "type": "laundry",
-          "area": 4.1,
+          "roomId": "lavadero",
           "x": 18,
           "y": 82,
           "w": 22,
@@ -275,9 +360,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Entrada",
-          "type": "hall",
-          "area": 6.1,
+          "roomId": "entrada",
           "x": 40,
           "y": 40,
           "w": 16,
@@ -285,9 +368,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Dormitorio 2",
-          "type": "bedroom",
-          "area": 10.2,
+          "roomId": "dormitorio-2",
           "x": 56,
           "y": 4,
           "w": 20,
@@ -296,9 +377,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Dormitorio 3",
-          "type": "bedroom",
-          "area": 10,
+          "roomId": "dormitorio-3",
           "x": 76,
           "y": 4,
           "w": 21,
@@ -307,9 +386,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Baño",
-          "type": "bath",
-          "area": 4.8,
+          "roomId": "bano-general",
           "x": 56,
           "y": 34,
           "w": 20,
@@ -317,9 +394,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Baño suite",
-          "type": "bath",
-          "area": 4.4,
+          "roomId": "bano-suite",
           "x": 76,
           "y": 34,
           "w": 21,
@@ -327,9 +402,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Suite",
-          "type": "suite",
-          "area": 13.5,
+          "roomId": "suite-principal",
           "x": 56,
           "y": 54,
           "w": 41,
@@ -338,10 +411,7 @@ export const HOUSES = [
           "door": "left"
         }
       ]
-    },
-    "slug": "vora-110",
-    "seoTitle": "VORA 110 | Casa industrializada de hormigón 110 m²",
-    "seoDescription": "Descubre VORA 110: vivienda industrializada de hormigón de 110 m², 3 dormitorios y 2 baños, completamente equipada y preparada para vivir."
+    }
   },
   {
     "id": "vora-130",
@@ -366,53 +436,113 @@ export const HOUSES = [
       "Gran porche"
     ],
     "idealFor": "Familias que quieren cuatro habitaciones sin irse a una casa excesiva.",
-    "usableSurface": 112,
-    "porchSurface": 30,
     "dimensions": "15,2 × 9,6 m aprox.",
+    "slug": "vora-130",
+    "seoTitle": "VORA 130 | Casa industrializada de hormigón 130 m²",
+    "seoDescription": "Descubre VORA 130: vivienda industrializada de hormigón de 130 m², 4 dormitorios y 2 baños, completamente equipada y preparada para vivir.",
+    "surfaces": {
+      "built": null,
+      "useful": 112,
+      "porch": 30,
+      "garage": null,
+      "terrace": null,
+      "pool": null
+    },
+    "validationStatus": "verified",
     "rooms": [
       {
+        "id": "salon-comedor-cocina",
         "name": "Salón-comedor-cocina",
-        "area": 44.1
+        "area": 44.1,
+        "type": "room",
+        "listed": true
       },
       {
+        "id": "suite-principal",
         "name": "Suite principal",
-        "area": 13.8
+        "area": 13.8,
+        "type": "suite",
+        "listed": true,
+        "planLabel": "Suite"
       },
       {
+        "id": "vestidor",
         "name": "Vestidor",
-        "area": 3.6
+        "area": 3.6,
+        "type": "closet",
+        "listed": true
       },
       {
+        "id": "bano-suite",
         "name": "Baño suite",
-        "area": 4.6
+        "area": 4.6,
+        "type": "bath",
+        "listed": true
       },
       {
+        "id": "dormitorio-2",
         "name": "Dormitorio 2",
-        "area": 10.2
+        "area": 10.2,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "dormitorio-3",
         "name": "Dormitorio 3",
-        "area": 10.1
+        "area": 10.1,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "dormitorio-4",
         "name": "Dormitorio 4",
-        "area": 9.8
+        "area": 9.8,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "bano-general",
         "name": "Baño general",
-        "area": 5.1
+        "area": 5.1,
+        "type": "bath",
+        "listed": true,
+        "planLabel": "Baño"
       },
       {
+        "id": "lavadero",
         "name": "Lavadero",
-        "area": 4.4
+        "area": 4.4,
+        "type": "laundry",
+        "listed": true
       },
       {
+        "id": "despensa",
         "name": "Despensa",
-        "area": 2.8
+        "area": 2.8,
+        "type": "pantry",
+        "listed": true
       },
       {
+        "id": "distribucion-y-entrada",
         "name": "Distribución y entrada",
-        "area": 3.5
+        "area": 3.5,
+        "type": "hall",
+        "listed": true,
+        "planLabel": "Entrada"
+      },
+      {
+        "id": "salon-comedor",
+        "name": "Salón · comedor",
+        "area": 28.6,
+        "type": "living",
+        "listed": false
+      },
+      {
+        "id": "cocina",
+        "name": "Cocina",
+        "area": 15.5,
+        "type": "kitchen",
+        "listed": false
       }
     ],
     "plan": {
@@ -420,9 +550,7 @@ export const HOUSES = [
       "depthM": 9.6,
       "rooms": [
         {
-          "name": "Salón · comedor",
-          "type": "living",
-          "area": 28.6,
+          "roomId": "salon-comedor",
           "x": 3,
           "y": 4,
           "w": 34,
@@ -431,9 +559,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Cocina",
-          "type": "kitchen",
-          "area": 15.5,
+          "roomId": "cocina",
           "x": 3,
           "y": 58,
           "w": 34,
@@ -442,9 +568,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Despensa",
-          "type": "pantry",
-          "area": 2.8,
+          "roomId": "despensa",
           "x": 3,
           "y": 82,
           "w": 14,
@@ -452,9 +576,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Lavadero",
-          "type": "laundry",
-          "area": 4.4,
+          "roomId": "lavadero",
           "x": 17,
           "y": 82,
           "w": 20,
@@ -462,9 +584,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Dormitorio 2",
-          "type": "bedroom",
-          "area": 10.2,
+          "roomId": "dormitorio-2",
           "x": 37,
           "y": 4,
           "w": 19,
@@ -473,9 +593,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Dormitorio 3",
-          "type": "bedroom",
-          "area": 10.1,
+          "roomId": "dormitorio-3",
           "x": 56,
           "y": 4,
           "w": 19,
@@ -484,9 +602,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Dormitorio 4",
-          "type": "bedroom",
-          "area": 9.8,
+          "roomId": "dormitorio-4",
           "x": 75,
           "y": 4,
           "w": 22,
@@ -495,9 +611,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Baño",
-          "type": "bath",
-          "area": 5.1,
+          "roomId": "bano-general",
           "x": 37,
           "y": 33,
           "w": 19,
@@ -505,9 +619,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Entrada",
-          "type": "hall",
-          "area": 3.5,
+          "roomId": "distribucion-y-entrada",
           "x": 56,
           "y": 33,
           "w": 19,
@@ -515,9 +627,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Baño suite",
-          "type": "bath",
-          "area": 4.6,
+          "roomId": "bano-suite",
           "x": 75,
           "y": 33,
           "w": 22,
@@ -525,9 +635,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Vestidor",
-          "type": "closet",
-          "area": 3.6,
+          "roomId": "vestidor",
           "x": 37,
           "y": 53,
           "w": 17,
@@ -535,9 +643,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Suite",
-          "type": "suite",
-          "area": 13.8,
+          "roomId": "suite-principal",
           "x": 54,
           "y": 53,
           "w": 43,
@@ -546,10 +652,7 @@ export const HOUSES = [
           "door": "left"
         }
       ]
-    },
-    "slug": "vora-130",
-    "seoTitle": "VORA 130 | Casa industrializada de hormigón 130 m²",
-    "seoDescription": "Descubre VORA 130: vivienda industrializada de hormigón de 130 m², 4 dormitorios y 2 baños, completamente equipada y preparada para vivir."
+    }
   },
   {
     "id": "vora-150",
@@ -574,57 +677,120 @@ export const HOUSES = [
       "Preparada para piscina"
     ],
     "idealFor": "Quien busca una vivienda definitiva con más privacidad y presencia.",
-    "usableSurface": 129,
-    "porchSurface": 36,
     "dimensions": "16,6 × 10,2 m aprox.",
+    "slug": "vora-150",
+    "seoTitle": "VORA 150 | Casa industrializada de hormigón 150 m²",
+    "seoDescription": "Descubre VORA 150: vivienda industrializada de hormigón de 150 m², 4 dormitorios y 3 baños, completamente equipada y preparada para vivir.",
+    "surfaces": {
+      "built": null,
+      "useful": 129,
+      "porch": 36,
+      "garage": null,
+      "terrace": null,
+      "pool": null
+    },
+    "validationStatus": "verified",
     "rooms": [
       {
+        "id": "salon-comedor-cocina",
         "name": "Salón-comedor-cocina",
-        "area": 49.2
+        "area": 49.2,
+        "type": "room",
+        "listed": true
       },
       {
+        "id": "suite-principal",
         "name": "Suite principal",
-        "area": 15.2
+        "area": 15.2,
+        "type": "suite",
+        "listed": true
       },
       {
+        "id": "vestidor",
         "name": "Vestidor",
-        "area": 5.2
+        "area": 5.2,
+        "type": "closet",
+        "listed": true
       },
       {
+        "id": "bano-suite",
         "name": "Baño suite",
-        "area": 5.4
+        "area": 5.4,
+        "type": "bath",
+        "listed": true
       },
       {
+        "id": "suite-secundaria",
         "name": "Suite secundaria",
-        "area": 11.7
+        "area": 11.7,
+        "type": "suite",
+        "listed": true,
+        "planLabel": "Suite 2"
       },
       {
+        "id": "bano-suite-2",
         "name": "Baño suite 2",
-        "area": 4.2
+        "area": 4.2,
+        "type": "bath",
+        "listed": true
       },
       {
+        "id": "dormitorio-3",
         "name": "Dormitorio 3",
-        "area": 10.4
+        "area": 10.4,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "dormitorio-4",
         "name": "Dormitorio 4",
-        "area": 10.2
+        "area": 10.2,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "bano-general",
         "name": "Baño general",
-        "area": 5
+        "area": 5,
+        "type": "bath",
+        "listed": true,
+        "planLabel": "Baño"
       },
       {
+        "id": "lavadero",
         "name": "Lavadero",
-        "area": 4.8
+        "area": 4.8,
+        "type": "laundry",
+        "listed": true
       },
       {
+        "id": "despensa",
         "name": "Despensa",
-        "area": 3.1
+        "area": 3.1,
+        "type": "pantry",
+        "listed": true
       },
       {
+        "id": "distribucion",
         "name": "Distribución",
-        "area": 4.6
+        "area": 4.6,
+        "type": "hall",
+        "listed": true,
+        "planLabel": "Entrada"
+      },
+      {
+        "id": "salon-comedor",
+        "name": "Salón · comedor",
+        "area": 31.4,
+        "type": "living",
+        "listed": false
+      },
+      {
+        "id": "cocina",
+        "name": "Cocina",
+        "area": 17.8,
+        "type": "kitchen",
+        "listed": false
       }
     ],
     "plan": {
@@ -632,9 +798,7 @@ export const HOUSES = [
       "depthM": 10.2,
       "rooms": [
         {
-          "name": "Salón · comedor",
-          "type": "living",
-          "area": 31.4,
+          "roomId": "salon-comedor",
           "x": 3,
           "y": 4,
           "w": 34,
@@ -643,9 +807,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Cocina",
-          "type": "kitchen",
-          "area": 17.8,
+          "roomId": "cocina",
           "x": 3,
           "y": 56,
           "w": 34,
@@ -654,9 +816,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Despensa",
-          "type": "pantry",
-          "area": 3.1,
+          "roomId": "despensa",
           "x": 3,
           "y": 82,
           "w": 15,
@@ -664,9 +824,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Lavadero",
-          "type": "laundry",
-          "area": 4.8,
+          "roomId": "lavadero",
           "x": 18,
           "y": 82,
           "w": 19,
@@ -674,9 +832,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Dormitorio 3",
-          "type": "bedroom",
-          "area": 10.4,
+          "roomId": "dormitorio-3",
           "x": 37,
           "y": 4,
           "w": 18,
@@ -685,9 +841,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Dormitorio 4",
-          "type": "bedroom",
-          "area": 10.2,
+          "roomId": "dormitorio-4",
           "x": 55,
           "y": 4,
           "w": 18,
@@ -696,9 +850,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Suite 2",
-          "type": "suite",
-          "area": 11.7,
+          "roomId": "suite-secundaria",
           "x": 73,
           "y": 4,
           "w": 24,
@@ -707,9 +859,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Baño",
-          "type": "bath",
-          "area": 5,
+          "roomId": "bano-general",
           "x": 37,
           "y": 32,
           "w": 18,
@@ -717,9 +867,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Baño suite 2",
-          "type": "bath",
-          "area": 4.2,
+          "roomId": "bano-suite-2",
           "x": 55,
           "y": 32,
           "w": 18,
@@ -727,9 +875,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Entrada",
-          "type": "hall",
-          "area": 4.6,
+          "roomId": "distribucion",
           "x": 73,
           "y": 32,
           "w": 24,
@@ -737,9 +883,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Vestidor",
-          "type": "closet",
-          "area": 5.2,
+          "roomId": "vestidor",
           "x": 37,
           "y": 52,
           "w": 17,
@@ -747,9 +891,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Baño suite",
-          "type": "bath",
-          "area": 5.4,
+          "roomId": "bano-suite",
           "x": 37,
           "y": 72,
           "w": 17,
@@ -757,9 +899,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Suite principal",
-          "type": "suite",
-          "area": 15.2,
+          "roomId": "suite-principal",
           "x": 54,
           "y": 52,
           "w": 43,
@@ -768,10 +908,7 @@ export const HOUSES = [
           "door": "left"
         }
       ]
-    },
-    "slug": "vora-150",
-    "seoTitle": "VORA 150 | Casa industrializada de hormigón 150 m²",
-    "seoDescription": "Descubre VORA 150: vivienda industrializada de hormigón de 150 m², 4 dormitorios y 3 baños, completamente equipada y preparada para vivir."
+    }
   },
   {
     "id": "vora-170",
@@ -796,61 +933,125 @@ export const HOUSES = [
       "2 coches"
     ],
     "idealFor": "Familias que quieren más vida exterior y un espacio de trabajo propio.",
-    "usableSurface": 148,
-    "porchSurface": 48,
     "dimensions": "18,2 × 11,0 m aprox.",
+    "slug": "vora-170",
+    "seoTitle": "VORA 170 | Casa industrializada de hormigón 170 m²",
+    "seoDescription": "Descubre VORA 170: vivienda industrializada de hormigón de 170 m², 4 dormitorios y 3 baños, completamente equipada y preparada para vivir.",
+    "surfaces": {
+      "built": null,
+      "useful": 148,
+      "porch": 48,
+      "garage": null,
+      "terrace": null,
+      "pool": null
+    },
+    "validationStatus": "pending",
     "rooms": [
       {
+        "id": "salon-comedor-cocina",
         "name": "Salón-comedor-cocina",
-        "area": 53.2
+        "area": 53.2,
+        "type": "room",
+        "listed": true
       },
       {
+        "id": "suite-principal",
         "name": "Suite principal",
-        "area": 16.4
+        "area": 16.4,
+        "type": "suite",
+        "listed": true
       },
       {
+        "id": "vestidor",
         "name": "Vestidor",
-        "area": 5.8
+        "area": 5.8,
+        "type": "closet",
+        "listed": true
       },
       {
+        "id": "bano-suite",
         "name": "Baño suite",
-        "area": 5.8
+        "area": 5.8,
+        "type": "bath",
+        "listed": true
       },
       {
+        "id": "dormitorio-2",
         "name": "Dormitorio 2",
-        "area": 11
+        "area": 11,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "dormitorio-3",
         "name": "Dormitorio 3",
-        "area": 10.8
+        "area": 10.8,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "dormitorio-4",
         "name": "Dormitorio 4",
-        "area": 10.6
+        "area": 10.6,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "bano-2",
         "name": "Baño 2",
-        "area": 4.8
+        "area": 4.8,
+        "type": "bath",
+        "listed": true
       },
       {
+        "id": "bano-3",
         "name": "Baño 3",
-        "area": 4.6
+        "area": 4.6,
+        "type": "bath",
+        "listed": true
       },
       {
+        "id": "despacho",
         "name": "Despacho",
-        "area": 8.4
+        "area": 8.4,
+        "type": "office",
+        "listed": true
       },
       {
+        "id": "lavadero",
         "name": "Lavadero",
-        "area": 5.2
+        "area": 5.2,
+        "type": "laundry",
+        "listed": true
       },
       {
+        "id": "despensa",
         "name": "Despensa",
-        "area": 3.4
+        "area": 3.4,
+        "type": "pantry",
+        "listed": true
       },
       {
+        "id": "distribucion",
         "name": "Distribución",
-        "area": 7
+        "area": 7,
+        "type": "hall",
+        "listed": true,
+        "planLabel": "Entrada"
+      },
+      {
+        "id": "salon-comedor",
+        "name": "Salón · comedor",
+        "area": 34.4,
+        "type": "living",
+        "listed": false
+      },
+      {
+        "id": "cocina",
+        "name": "Cocina",
+        "area": 18.8,
+        "type": "kitchen",
+        "listed": false
       }
     ],
     "plan": {
@@ -858,9 +1059,7 @@ export const HOUSES = [
       "depthM": 11,
       "rooms": [
         {
-          "name": "Salón · comedor",
-          "type": "living",
-          "area": 34.4,
+          "roomId": "salon-comedor",
           "x": 3,
           "y": 4,
           "w": 34,
@@ -869,9 +1068,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Cocina",
-          "type": "kitchen",
-          "area": 18.8,
+          "roomId": "cocina",
           "x": 3,
           "y": 53,
           "w": 34,
@@ -880,9 +1077,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Despensa",
-          "type": "pantry",
-          "area": 3.4,
+          "roomId": "despensa",
           "x": 3,
           "y": 78,
           "w": 13,
@@ -890,9 +1085,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Lavadero",
-          "type": "laundry",
-          "area": 5.2,
+          "roomId": "lavadero",
           "x": 16,
           "y": 78,
           "w": 21,
@@ -900,9 +1093,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Despacho",
-          "type": "office",
-          "area": 8.4,
+          "roomId": "despacho",
           "x": 37,
           "y": 4,
           "w": 16,
@@ -911,9 +1102,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Dormitorio 2",
-          "type": "bedroom",
-          "area": 11,
+          "roomId": "dormitorio-2",
           "x": 53,
           "y": 4,
           "w": 15,
@@ -922,9 +1111,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Dormitorio 3",
-          "type": "bedroom",
-          "area": 10.8,
+          "roomId": "dormitorio-3",
           "x": 68,
           "y": 4,
           "w": 15,
@@ -933,9 +1120,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Dormitorio 4",
-          "type": "bedroom",
-          "area": 10.6,
+          "roomId": "dormitorio-4",
           "x": 83,
           "y": 4,
           "w": 14,
@@ -944,9 +1129,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Baño 2",
-          "type": "bath",
-          "area": 4.8,
+          "roomId": "bano-2",
           "x": 37,
           "y": 30,
           "w": 16,
@@ -954,9 +1137,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Baño 3",
-          "type": "bath",
-          "area": 4.6,
+          "roomId": "bano-3",
           "x": 53,
           "y": 30,
           "w": 15,
@@ -964,9 +1145,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Entrada",
-          "type": "hall",
-          "area": 7,
+          "roomId": "distribucion",
           "x": 68,
           "y": 30,
           "w": 29,
@@ -974,9 +1153,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Vestidor",
-          "type": "closet",
-          "area": 5.8,
+          "roomId": "vestidor",
           "x": 37,
           "y": 48,
           "w": 17,
@@ -984,9 +1161,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Baño suite",
-          "type": "bath",
-          "area": 5.8,
+          "roomId": "bano-suite",
           "x": 37,
           "y": 68,
           "w": 17,
@@ -994,9 +1169,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Suite principal",
-          "type": "suite",
-          "area": 16.4,
+          "roomId": "suite-principal",
           "x": 54,
           "y": 48,
           "w": 43,
@@ -1005,10 +1178,7 @@ export const HOUSES = [
           "door": "left"
         }
       ]
-    },
-    "slug": "vora-170",
-    "seoTitle": "VORA 170 | Casa industrializada de hormigón 170 m²",
-    "seoDescription": "Descubre VORA 170: vivienda industrializada de hormigón de 170 m², 4 dormitorios y 3 baños, completamente equipada y preparada para vivir."
+    }
   },
   {
     "id": "vora-200",
@@ -1033,73 +1203,139 @@ export const HOUSES = [
       "Garaje doble"
     ],
     "idealFor": "Quien busca una villa contemporánea completa en una sola planta.",
-    "usableSurface": 174,
-    "porchSurface": 55,
     "dimensions": "18,8 × 14,4 m aprox. (planta en L)",
+    "slug": "vora-200",
+    "seoTitle": "VORA 200 | Casa industrializada de hormigón 200 m²",
+    "seoDescription": "Descubre VORA 200: vivienda industrializada de hormigón de 200 m², 4 dormitorios y 3 baños, completamente equipada y preparada para vivir.",
+    "surfaces": {
+      "built": null,
+      "useful": 174,
+      "porch": 55,
+      "garage": null,
+      "terrace": null,
+      "pool": null
+    },
+    "validationStatus": "pending",
     "rooms": [
       {
+        "id": "salon",
         "name": "Salón",
-        "area": 28
+        "area": 28,
+        "type": "living",
+        "listed": true
       },
       {
+        "id": "comedor",
         "name": "Comedor",
-        "area": 15.4
+        "area": 15.4,
+        "type": "living",
+        "listed": true
       },
       {
+        "id": "cocina",
         "name": "Cocina",
-        "area": 18.2
+        "area": 18.2,
+        "type": "kitchen",
+        "listed": true
       },
       {
+        "id": "suite-principal",
         "name": "Suite principal",
-        "area": 18.3
+        "area": 18.3,
+        "type": "suite",
+        "listed": true
       },
       {
+        "id": "vestidor",
         "name": "Vestidor",
-        "area": 7.2
+        "area": 7.2,
+        "type": "closet",
+        "listed": true
       },
       {
+        "id": "bano-suite",
         "name": "Baño suite",
-        "area": 6.4
+        "area": 6.4,
+        "type": "bath",
+        "listed": true
       },
       {
+        "id": "dormitorio-2",
         "name": "Dormitorio 2",
-        "area": 11.4
+        "area": 11.4,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "dormitorio-3",
         "name": "Dormitorio 3",
-        "area": 11.2
+        "area": 11.2,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "dormitorio-4",
         "name": "Dormitorio 4",
-        "area": 11
+        "area": 11,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "bano-2",
         "name": "Baño 2",
-        "area": 5.2
+        "area": 5.2,
+        "type": "bath",
+        "listed": true
       },
       {
+        "id": "bano-3",
         "name": "Baño 3",
-        "area": 5
+        "area": 5,
+        "type": "bath",
+        "listed": true
       },
       {
+        "id": "despacho",
         "name": "Despacho",
-        "area": 9.5
+        "area": 9.5,
+        "type": "office",
+        "listed": true
       },
       {
+        "id": "lavadero",
         "name": "Lavadero",
-        "area": 6
+        "area": 6,
+        "type": "laundry",
+        "listed": true
       },
       {
+        "id": "despensa",
         "name": "Despensa",
-        "area": 4
+        "area": 4,
+        "type": "pantry",
+        "listed": true
       },
       {
+        "id": "zona-tecnica",
         "name": "Zona técnica",
-        "area": 4.8
+        "area": 4.8,
+        "type": "technical",
+        "listed": true,
+        "planLabel": "Técnico"
       },
       {
+        "id": "distribucion",
         "name": "Distribución",
-        "area": 12.4
+        "area": 12.4,
+        "type": "room",
+        "listed": true
+      },
+      {
+        "id": "entrada",
+        "name": "Entrada",
+        "area": 7,
+        "type": "hall",
+        "listed": false
       }
     ],
     "plan": {
@@ -1107,9 +1343,7 @@ export const HOUSES = [
       "depthM": 14.4,
       "rooms": [
         {
-          "name": "Salón",
-          "type": "living",
-          "area": 28,
+          "roomId": "salon",
           "x": 3,
           "y": 4,
           "w": 31,
@@ -1118,9 +1352,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Comedor",
-          "type": "living",
-          "area": 15.4,
+          "roomId": "comedor",
           "x": 3,
           "y": 37,
           "w": 31,
@@ -1129,9 +1361,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Cocina",
-          "type": "kitchen",
-          "area": 18.2,
+          "roomId": "cocina",
           "x": 3,
           "y": 56,
           "w": 31,
@@ -1140,9 +1370,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Despensa",
-          "type": "pantry",
-          "area": 4,
+          "roomId": "despensa",
           "x": 3,
           "y": 78,
           "w": 14,
@@ -1150,9 +1378,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Lavadero",
-          "type": "laundry",
-          "area": 6,
+          "roomId": "lavadero",
           "x": 17,
           "y": 78,
           "w": 17,
@@ -1160,9 +1386,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Despacho",
-          "type": "office",
-          "area": 9.5,
+          "roomId": "despacho",
           "x": 34,
           "y": 4,
           "w": 17,
@@ -1171,9 +1395,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Baño 2",
-          "type": "bath",
-          "area": 5.2,
+          "roomId": "bano-2",
           "x": 34,
           "y": 29,
           "w": 17,
@@ -1181,9 +1403,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Entrada",
-          "type": "hall",
-          "area": 7,
+          "roomId": "entrada",
           "x": 34,
           "y": 45,
           "w": 17,
@@ -1191,9 +1411,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Técnico",
-          "type": "technical",
-          "area": 4.8,
+          "roomId": "zona-tecnica",
           "x": 34,
           "y": 62,
           "w": 17,
@@ -1201,9 +1419,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Dormitorio 2",
-          "type": "bedroom",
-          "area": 11.4,
+          "roomId": "dormitorio-2",
           "x": 51,
           "y": 4,
           "w": 15,
@@ -1212,9 +1428,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Dormitorio 3",
-          "type": "bedroom",
-          "area": 11.2,
+          "roomId": "dormitorio-3",
           "x": 66,
           "y": 4,
           "w": 15,
@@ -1223,9 +1437,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Dormitorio 4",
-          "type": "bedroom",
-          "area": 11,
+          "roomId": "dormitorio-4",
           "x": 81,
           "y": 4,
           "w": 16,
@@ -1234,9 +1446,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Baño 3",
-          "type": "bath",
-          "area": 5,
+          "roomId": "bano-3",
           "x": 51,
           "y": 29,
           "w": 15,
@@ -1244,9 +1454,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Vestidor",
-          "type": "closet",
-          "area": 7.2,
+          "roomId": "vestidor",
           "x": 66,
           "y": 29,
           "w": 15,
@@ -1254,9 +1462,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Baño suite",
-          "type": "bath",
-          "area": 6.4,
+          "roomId": "bano-suite",
           "x": 81,
           "y": 29,
           "w": 16,
@@ -1264,9 +1470,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Suite principal",
-          "type": "suite",
-          "area": 18.3,
+          "roomId": "suite-principal",
           "x": 51,
           "y": 45,
           "w": 46,
@@ -1275,10 +1479,7 @@ export const HOUSES = [
           "door": "left"
         }
       ]
-    },
-    "slug": "vora-200",
-    "seoTitle": "VORA 200 | Casa industrializada de hormigón 200 m²",
-    "seoDescription": "Descubre VORA 200: vivienda industrializada de hormigón de 200 m², 4 dormitorios y 3 baños, completamente equipada y preparada para vivir."
+    }
   },
   {
     "id": "vora-signature",
@@ -1303,85 +1504,161 @@ export const HOUSES = [
       "Piscina + garaje"
     ],
     "idealFor": "Quien quiere la experiencia VORA sin compromisos.",
-    "usableSurface": 208,
-    "porchSurface": 78,
     "dimensions": "22,5 × 15,4 m aprox. (composición en U)",
+    "slug": "vora-signature",
+    "seoTitle": "VORA Signature | Casa industrializada de hormigón 245 m²",
+    "seoDescription": "Descubre VORA Signature: vivienda industrializada de hormigón de 245 m², 5 dormitorios y 4 baños, completamente equipada y preparada para vivir.",
+    "surfaces": {
+      "built": null,
+      "useful": 208,
+      "porch": 78,
+      "garage": null,
+      "terrace": null,
+      "pool": null
+    },
+    "validationStatus": "pending",
     "rooms": [
       {
+        "id": "salon",
         "name": "Salón",
-        "area": 34
+        "area": 34,
+        "type": "living",
+        "listed": true
       },
       {
+        "id": "comedor",
         "name": "Comedor",
-        "area": 18
+        "area": 18,
+        "type": "living",
+        "listed": true
       },
       {
+        "id": "cocina",
         "name": "Cocina",
-        "area": 21
+        "area": 21,
+        "type": "kitchen",
+        "listed": true
       },
       {
+        "id": "suite-principal",
         "name": "Suite principal",
-        "area": 22
+        "area": 22,
+        "type": "suite",
+        "listed": true
       },
       {
+        "id": "vestidor",
         "name": "Vestidor",
-        "area": 9.2
+        "area": 9.2,
+        "type": "closet",
+        "listed": true
       },
       {
+        "id": "bano-principal",
         "name": "Baño principal",
-        "area": 8.5
+        "area": 8.5,
+        "type": "bath",
+        "listed": true
       },
       {
+        "id": "dormitorio-2",
         "name": "Dormitorio 2",
-        "area": 12.4
+        "area": 12.4,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "dormitorio-3",
         "name": "Dormitorio 3",
-        "area": 12.2
+        "area": 12.2,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "dormitorio-4",
         "name": "Dormitorio 4",
-        "area": 12
+        "area": 12,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "dormitorio-5",
         "name": "Dormitorio 5",
-        "area": 11.8
+        "area": 11.8,
+        "type": "bedroom",
+        "listed": true
       },
       {
+        "id": "bano-2",
         "name": "Baño 2",
-        "area": 5.4
+        "area": 5.4,
+        "type": "bath",
+        "listed": true
       },
       {
+        "id": "bano-3",
         "name": "Baño 3",
-        "area": 5.2
+        "area": 5.2,
+        "type": "bath",
+        "listed": true
       },
       {
+        "id": "bano-4",
         "name": "Baño 4",
-        "area": 5
+        "area": 5,
+        "type": "bath",
+        "listed": true
       },
       {
+        "id": "despacho",
         "name": "Despacho",
-        "area": 10.4
+        "area": 10.4,
+        "type": "office",
+        "listed": true
       },
       {
+        "id": "gimnasio-polivalente",
         "name": "Gimnasio / polivalente",
-        "area": 13.5
+        "area": 13.5,
+        "type": "gym",
+        "listed": true,
+        "planLabel": "Gimnasio"
       },
       {
+        "id": "lavadero",
         "name": "Lavadero",
-        "area": 6.5
+        "area": 6.5,
+        "type": "laundry",
+        "listed": true
       },
       {
+        "id": "despensa",
         "name": "Despensa",
-        "area": 4.5
+        "area": 4.5,
+        "type": "pantry",
+        "listed": true
       },
       {
+        "id": "cuarto-tecnico",
         "name": "Cuarto técnico",
-        "area": 5.4
+        "area": 5.4,
+        "type": "technical",
+        "listed": true,
+        "planLabel": "Técnico"
       },
       {
+        "id": "distribucion",
         "name": "Distribución",
-        "area": 16
+        "area": 16,
+        "type": "room",
+        "listed": true
+      },
+      {
+        "id": "entrada",
+        "name": "Entrada",
+        "area": 8,
+        "type": "hall",
+        "listed": false
       }
     ],
     "plan": {
@@ -1389,9 +1666,7 @@ export const HOUSES = [
       "depthM": 15.4,
       "rooms": [
         {
-          "name": "Salón",
-          "type": "living",
-          "area": 34,
+          "roomId": "salon",
           "x": 3,
           "y": 4,
           "w": 28,
@@ -1400,9 +1675,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Comedor",
-          "type": "living",
-          "area": 18,
+          "roomId": "comedor",
           "x": 3,
           "y": 37,
           "w": 28,
@@ -1411,9 +1684,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Cocina",
-          "type": "kitchen",
-          "area": 21,
+          "roomId": "cocina",
           "x": 3,
           "y": 56,
           "w": 28,
@@ -1422,9 +1693,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Despensa",
-          "type": "pantry",
-          "area": 4.5,
+          "roomId": "despensa",
           "x": 3,
           "y": 78,
           "w": 13,
@@ -1432,9 +1701,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Lavadero",
-          "type": "laundry",
-          "area": 6.5,
+          "roomId": "lavadero",
           "x": 16,
           "y": 78,
           "w": 15,
@@ -1442,9 +1709,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Despacho",
-          "type": "office",
-          "area": 10.4,
+          "roomId": "despacho",
           "x": 31,
           "y": 4,
           "w": 15,
@@ -1453,9 +1718,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Gimnasio",
-          "type": "gym",
-          "area": 13.5,
+          "roomId": "gimnasio-polivalente",
           "x": 31,
           "y": 28,
           "w": 15,
@@ -1464,9 +1727,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Técnico",
-          "type": "technical",
-          "area": 5.4,
+          "roomId": "cuarto-tecnico",
           "x": 31,
           "y": 54,
           "w": 15,
@@ -1474,9 +1735,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Entrada",
-          "type": "hall",
-          "area": 8,
+          "roomId": "entrada",
           "x": 31,
           "y": 72,
           "w": 15,
@@ -1484,9 +1743,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Dormitorio 2",
-          "type": "bedroom",
-          "area": 12.4,
+          "roomId": "dormitorio-2",
           "x": 46,
           "y": 4,
           "w": 13,
@@ -1495,9 +1752,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Dormitorio 3",
-          "type": "bedroom",
-          "area": 12.2,
+          "roomId": "dormitorio-3",
           "x": 59,
           "y": 4,
           "w": 13,
@@ -1506,9 +1761,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Dormitorio 4",
-          "type": "bedroom",
-          "area": 12,
+          "roomId": "dormitorio-4",
           "x": 72,
           "y": 4,
           "w": 12,
@@ -1517,9 +1770,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Dormitorio 5",
-          "type": "bedroom",
-          "area": 11.8,
+          "roomId": "dormitorio-5",
           "x": 84,
           "y": 4,
           "w": 13,
@@ -1528,9 +1779,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Baño 2",
-          "type": "bath",
-          "area": 5.4,
+          "roomId": "bano-2",
           "x": 46,
           "y": 30,
           "w": 13,
@@ -1538,9 +1787,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Baño 3",
-          "type": "bath",
-          "area": 5.2,
+          "roomId": "bano-3",
           "x": 59,
           "y": 30,
           "w": 13,
@@ -1548,9 +1795,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Baño 4",
-          "type": "bath",
-          "area": 5,
+          "roomId": "bano-4",
           "x": 72,
           "y": 30,
           "w": 12,
@@ -1558,9 +1803,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Vestidor",
-          "type": "closet",
-          "area": 9.2,
+          "roomId": "vestidor",
           "x": 84,
           "y": 30,
           "w": 13,
@@ -1568,9 +1811,7 @@ export const HOUSES = [
           "door": "bottom"
         },
         {
-          "name": "Baño principal",
-          "type": "bath",
-          "area": 8.5,
+          "roomId": "bano-principal",
           "x": 46,
           "y": 48,
           "w": 18,
@@ -1578,9 +1819,7 @@ export const HOUSES = [
           "door": "right"
         },
         {
-          "name": "Suite principal",
-          "type": "suite",
-          "area": 22,
+          "roomId": "suite-principal",
           "x": 64,
           "y": 48,
           "w": 33,
@@ -1589,11 +1828,31 @@ export const HOUSES = [
           "door": "left"
         }
       ]
-    },
-    "slug": "vora-signature",
-    "seoTitle": "VORA Signature | Casa industrializada de hormigón 245 m²",
-    "seoDescription": "Descubre VORA Signature: vivienda industrializada de hormigón de 245 m², 5 dormitorios y 4 baños, completamente equipada y preparada para vivir."
+    }
   }
 ]
 
+const withLegacySurfaceAliases = (house) => Object.defineProperties(house, {
+  usableSurface: { enumerable: false, get: () => house.surfaces.useful },
+  porchSurface: { enumerable: false, get: () => house.surfaces.porch },
+})
+
+export const HOUSES = HOUSE_DATA.map(withLegacySurfaceAliases)
+
 export const getHouseById = (id) => HOUSES.find((house) => house.id === id)
+
+export const getListedRooms = (house) => house.rooms.filter((room) => room.listed)
+
+export const getPlanRooms = (house) => {
+  const roomsById = new Map(house.rooms.map((room) => [room.id, room]))
+  return house.plan.rooms.map((geometry) => {
+    const room = roomsById.get(geometry.roomId)
+    if (!room) throw new Error(`Unknown roomId "${geometry.roomId}" in ${house.id}`)
+    return {
+      ...geometry,
+      name: room.planLabel || room.name,
+      area: room.area,
+      type: room.type,
+    }
+  })
+}

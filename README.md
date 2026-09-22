@@ -21,6 +21,14 @@ El formulario ya no simula envíos. Usa una Vercel Function (`/api/contact`) y R
 
 El formulario envía también atribución de campañas: UTM, gclid, gbraid, wbraid y fbclid cuando existan.
 
+Si VORA publica un canal alternativo de contacto, se puede mostrar únicamente cuando exista un valor real mediante:
+
+- `VITE_CONTACT_EMAIL`
+- `VITE_CONTACT_PHONE`
+- `VITE_CONTACT_WHATSAPP_URL`
+
+Estas variables son opcionales y permanecen vacías por defecto. No se muestra ningún dato de contacto inventado.
+
 ## Analítica y SEM
 
 Opcionales; no pongas valores inventados. Configura solo los que utilices:
@@ -29,12 +37,15 @@ Opcionales; no pongas valores inventados. Configura solo los que utilices:
 - `VITE_GOOGLE_ADS_ID=AW-...`
 - `VITE_META_PIXEL_ID=...`
 
-La medición se carga únicamente tras consentimiento. Se generan eventos en `dataLayer` como:
+La medición se carga únicamente tras consentimiento. El diccionario completo y el funnel están en `docs/analytics-events.md`. Entre los eventos principales se incluyen:
 
 - `select_model`
-- `view_model`
+- `model_view`
+- `model_comparison_view`
+- `configurator_start`
+- `configurator_complete`
+- `contact_start`
 - `configurator_change`
-- `cta_click`
 - `form_start`
 - `generate_lead`
 

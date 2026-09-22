@@ -1,0 +1,45 @@
+import { test, expect } from '@playwright/test'
+
+test('advanced configurator keeps a shareable URL and restores every real choice',async({page})=>{
+  await page.addInitScript(()=>{
+    localStorage.setItem('vora_consent','necessary')
+    Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:(value)=>{window.copiedConfiguration=value;return Promise.resolve()}}})
+  })
+  await page.emulateMedia({reducedMotion:'reduce'})
+  await page.setViewportSize({width:390,height:844})
+  await page.goto('/?utm_source=configurator-test#configurator')
+  await page.getByRole('group',{name:'01 · MODELO'}).getByRole('button',{name:'170',exact:true}).click()
+  await page.getByRole('group',{name:'02 · INTERIOR'}).getByRole('button',{name:/GRAPHITE/}).click()
+  await page.getByRole('group',{name:'03 · EXTERIOR'}).getByRole('button',{name:/Pool/}).click()
+
+  await expect(page).toHaveURL(/utm_source=configurator-test.*model=170.*interior=GRAPHITE.*exterior=Pool.*source=configurator.*#configurator/)
+  const summary=page.getByRole('complementary',{name:'VORA 170'})
+  await expect(summary).toContainText('TU VORA')
+  await expect(summary).toContainText('GRAPHITE')
+  await expect(summary).toContainText('Pool')
+  await expect(summary.getByRole('link',{name:'Modificar'})).toHaveCount(2)
+  await summary.getByRole('button',{name:'Copiar configuración'}).click()
+  await expect(summary.getByRole('status')).toContainText('Enlace copiado')
+  const copied=await page.evaluate(()=>window.copiedConfiguration)
+  expect(copied).toMatch(/model=170.*interior=GRAPHITE.*exterior=Pool/)
+  expect(copied).not.toMatch(/name=|email=|phone=/)
+
+  await page.reload()
+  await expect(page.getByRole('group',{name:'01 · MODELO'}).getByRole('button',{name:'170',exact:true})).toHaveAttribute('aria-pressed','true')
+  await expect(page.getByRole('group',{name:'02 · INTERIOR'}).getByRole('button',{name:/GRAPHITE/})).toHaveAttribute('aria-pressed','true')
+  await expect(page.getByRole('group',{name:'03 · EXTERIOR'}).getByRole('button',{name:/Pool/})).toHaveAttribute('aria-pressed','true')
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
+})
+
+test('incompatible pool state is normalized and the complete result reaches contact',async({page})=>{
+  await page.addInitScript(()=>localStorage.setItem('vora_consent','necessary'))
+  await page.emulateMedia({reducedMotion:'reduce'})
+  await page.goto('/?model=90&interior=PURE&exterior=Pool&source=configurator#configurator')
+  await expect(page).toHaveURL(/model=90.*interior=PURE.*exterior=Terrace.*source=configurator.*#configurator/)
+  await expect(page.getByRole('group',{name:'03 · EXTERIOR'})).not.toContainText('Pool')
+  await page.getByRole('button',{name:'Hablar de esta VORA'}).click()
+  const contactSummary=page.getByRole('region',{name:'TU SELECCIÓN DEL CONFIGURADOR'})
+  await expect(contactSummary).toContainText('VORA 90')
+  await expect(contactSummary).toContainText('PURE')
+  await expect(contactSummary).toContainText('Terrace')
+})

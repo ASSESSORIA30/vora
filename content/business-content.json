@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "statuses": ["pending", "verified"],
+  "destinations": ["process", "faq", "scope", "budget", "models", "seo", "contact", "trust", "configurator"],
+  "records": [
+    {"id":"structure","label":"Estructura","status":"pending","priority":"high","destinations":["scope","faq","models","seo"],"value":null,"source":null,"validatedAt":null},
+    {"id":"facade","label":"Fachada","status":"pending","priority":"high","destinations":["scope","faq","models","configurator"],"value":null,"source":null,"validatedAt":null},
+    {"id":"enclosures","label":"Cerramientos","status":"pending","priority":"high","destinations":["scope","faq","models"],"value":null,"source":null,"validatedAt":null},
+    {"id":"foundation","label":"Cimentación","status":"pending","priority":"critical","destinations":["scope","process","faq","budget"],"value":null,"source":null,"validatedAt":null},
+    {"id":"earthworks","label":"Movimientos de tierra","status":"pending","priority":"critical","destinations":["scope","process","faq","budget"],"value":null,"source":null,"validatedAt":null},
+    {"id":"transport","label":"Transporte","status":"pending","priority":"critical","destinations":["scope","process","faq","budget"],"value":null,"source":null,"validatedAt":null},
+    {"id":"assembly","label":"Montaje","status":"pending","priority":"critical","destinations":["scope","process","faq","budget"],"value":null,"source":null,"validatedAt":null},
+    {"id":"geographic-limits","label":"Límites geográficos","status":"pending","priority":"critical","destinations":["scope","faq","contact","seo"],"value":null,"source":null,"validatedAt":null},
+    {"id":"technical-project","label":"Proyecto técnico","status":"pending","priority":"critical","destinations":["scope","process","faq","budget"],"value":null,"source":null,"validatedAt":null},
+    {"id":"site-management","label":"Dirección de obra","status":"pending","priority":"critical","destinations":["scope","process","faq","budget"],"value":null,"source":null,"validatedAt":null},
+    {"id":"licenses","label":"Licencias","status":"pending","priority":"critical","destinations":["scope","process","faq","budget"],"value":null,"source":null,"validatedAt":null},
+    {"id":"fees","label":"Tasas","status":"pending","priority":"critical","destinations":["scope","faq","budget"],"value":null,"source":null,"validatedAt":null},
+    {"id":"utility-connections","label":"Acometidas","status":"pending","priority":"critical","destinations":["scope","process","faq","budget"],"value":null,"source":null,"validatedAt":null},
+    {"id":"exterior","label":"Trabajos exteriores","status":"pending","priority":"high","destinations":["scope","faq","budget","configurator"],"value":null,"source":null,"validatedAt":null},
+    {"id":"personalization","label":"Opciones y límites de personalización","status":"pending","priority":"high","destinations":["models","faq","configurator","seo"],"value":null,"source":null,"validatedAt":null},
+    {"id":"land-service","label":"Servicio relacionado con el terreno","status":"pending","priority":"high","destinations":["process","faq","contact","seo"],"value":null,"source":null,"validatedAt":null},
+    {"id":"after-contact","label":"Fases después del contacto","status":"pending","priority":"high","destinations":["process","faq","contact"],"value":null,"source":null,"validatedAt":null},
+    {"id":"timelines","label":"Plazos por fase y totales","status":"pending","priority":"critical","destinations":["process","faq","models","seo"],"value":null,"source":null,"validatedAt":null},
+    {"id":"pricing-scope","label":"Alcance de una futura propuesta económica","status":"pending","priority":"critical","destinations":["scope","faq","budget","contact"],"value":null,"source":null,"validatedAt":null},
+    {"id":"taxes","label":"Impuestos","status":"pending","priority":"critical","destinations":["faq","budget"],"value":null,"source":null,"validatedAt":null},
+    {"id":"exclusions","label":"Exclusiones","status":"pending","priority":"critical","destinations":["scope","faq","budget"],"value":null,"source":null,"validatedAt":null},
+    {"id":"warranties","label":"Garantías","status":"pending","priority":"high","destinations":["faq","trust","contact"],"value":null,"source":null,"validatedAt":null},
+    {"id":"after-sales","label":"Postventa","status":"pending","priority":"high","destinations":["process","faq","trust","contact"],"value":null,"source":null,"validatedAt":null},
+    {"id":"showroom","label":"Showroom o visita","status":"pending","priority":"medium","destinations":["faq","trust","contact"],"value":null,"source":null,"validatedAt":null},
+    {"id":"company-data","label":"Datos verificables de empresa","status":"pending","priority":"critical","destinations":["trust","contact","seo"],"value":null,"source":null,"validatedAt":null},
+    {"id":"direct-contact","label":"Canal directo de contacto","status":"pending","priority":"critical","destinations":["contact","trust"],"value":null,"source":null,"validatedAt":null}
+  ]
+}
