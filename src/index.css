@@ -13,7 +13,6 @@
 }
 
 * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-html, body { overscroll-behavior: none; }
 html { scroll-behavior: auto; background-color: var(--cream); }
 body {
   font-family: 'Manrope', system-ui, sans-serif;
@@ -28,7 +27,7 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(36,35,31,.24); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
-.font-display { font-variation-settings: "opsz" 144, "SOFT" 35, "WONK" 0; font-feature-settings: "ss01", "liga", "dlig"; }
+.font-display { font-optical-sizing: auto; font-variation-settings: "SOFT" 35, "WONK" 0; font-feature-settings: "ss01", "liga", "dlig"; }
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
@@ -49,12 +48,15 @@ html.lenis, html.lenis body { height: auto; }
   position: relative; display: inline-flex; align-items: center; gap: .75rem; padding: 1rem 2.25rem;
   background: var(--navy); color: var(--cream); border-radius: 999px; font-family: 'Manrope', sans-serif;
   font-size: .875rem; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; overflow: hidden;
-  transition: color .4s cubic-bezier(.16,1,.3,1); cursor: pointer; border: 1px solid rgba(240,238,233,.08);
+  transition: color .25s cubic-bezier(.16,1,.3,1), scale .12s ease-out; cursor: pointer; border: 1px solid rgba(240,238,233,.08);
 }
-.btn-primary::before { content: ''; position: absolute; inset: 0; background: var(--gold); transform: translateY(101%); transition: transform .6s cubic-bezier(.16,1,.3,1); z-index: 0; }
+.btn-primary::before { content: ''; position: absolute; inset: 0; background: var(--gold); transform: translateY(101%); transition: transform .25s cubic-bezier(.16,1,.3,1); z-index: 0; }
 .btn-primary:hover::before { transform: translateY(0); }
 .btn-primary:hover { color: var(--cream); }
 .btn-primary > * { position: relative; z-index: 1; }
+/* Feedback on press, not on release. `scale` leaves GSAP-owned transforms untouched. */
+* { -webkit-tap-highlight-color: transparent; }
+:where(.btn-primary, button, a[class*="rounded-full"]):not(:disabled):active { scale: .97; }
 .section-label { font-family: 'JetBrains Mono', monospace; font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; }
 .arch-grid {
   background-image: linear-gradient(to right, rgba(36,35,31,.035) 1px, transparent 1px), linear-gradient(to bottom, rgba(36,35,31,.035) 1px, transparent 1px);
@@ -99,7 +101,9 @@ section[id] { scroll-margin-top: 6rem; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation: none !important;
-    transition: none !important;
+    transition-property: opacity, color, background-color, border-color !important;
+    transition-duration: .15s !important;
+    transition-timing-function: ease !important;
     scroll-behavior: auto !important;
   }
   .reveal-line > span { transform: none !important; }

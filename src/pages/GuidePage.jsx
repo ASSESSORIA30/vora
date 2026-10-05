@@ -37,7 +37,7 @@ export default function GuidePage({ slug }) {
       <div className="max-w-[1200px] mx-auto px-6 py-20 md:px-12 md:py-32">
         {guide.sections.map((section, index) => <section key={section.title} className="grid grid-cols-12 gap-6 border-t border-navy-700/12 py-10 md:py-14">
           <div className="col-span-12 md:col-span-2 section-label text-gold-500">{String(index + 1).padStart(2, '0')}</div>
-          <div className="col-span-12 md:col-span-10"><h2 className="font-display text-3xl md:text-5xl tracking-tightest">{section.title}</h2><div className="mt-6 grid gap-5 md:grid-cols-2">{section.paragraphs.map((paragraph) => <p key={paragraph} className="leading-relaxed text-navy-700/68">{paragraph}</p>)}</div></div>
+          <div className="col-span-12 md:col-span-10"><h2 className="font-display text-3xl md:text-5xl tracking-[-0.01em] md:tracking-tightest">{section.title}</h2><div className="mt-6 grid gap-5 md:grid-cols-2">{section.paragraphs.map((paragraph) => <p key={paragraph} className="leading-relaxed text-navy-700/68">{paragraph}</p>)}</div></div>
         </section>)}
       </div>
     </article>

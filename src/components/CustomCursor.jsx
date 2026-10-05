@@ -17,16 +17,22 @@ export default function CustomCursor() {
     }
 
     setHidden(false)
-    let mouseX = window.innerWidth / 2
-    let mouseY = window.innerHeight / 2
-    let ringX = mouseX
-    let ringY = mouseY
-    let dotX = mouseX
-    let dotY = mouseY
+    let raf = 0
+    let x = 0
+    let y = 0
+
+    // Track the pointer 1:1 — any easing here reads as input lag.
+    const render = () => {
+      raf = 0
+      const position = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`
+      if (dotRef.current) dotRef.current.style.transform = position
+      if (ringRef.current) ringRef.current.style.transform = position
+    }
 
     const handleMove = (e) => {
-      mouseX = e.clientX
-      mouseY = e.clientY
+      x = e.clientX
+      y = e.clientY
+      if (!raf) raf = requestAnimationFrame(render)
     }
 
     const handleEnter = (e) => {
@@ -47,32 +53,15 @@ export default function CustomCursor() {
       }
     }
 
-    document.addEventListener('mousemove', handleMove)
+    document.addEventListener('pointermove', handleMove, { passive: true })
     document.addEventListener('mouseover', handleEnter)
 
-    let raf
-    const loop = () => {
-      dotX += (mouseX - dotX) * 0.45
-      dotY += (mouseY - dotY) * 0.45
-      ringX += (mouseX - ringX) * 0.15
-      ringY += (mouseY - ringY) * 0.15
-
-      if (dotRef.current) {
-        dotRef.current.style.transform = `translate3d(${dotX}px, ${dotY}px, 0) translate(-50%, -50%)`
-      }
-      if (ringRef.current) {
-        ringRef.current.style.transform = `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%) scale(${hover ? 2.4 : 1})`
-      }
-      raf = requestAnimationFrame(loop)
-    }
-    loop()
-
     return () => {
-      document.removeEventListener('mousemove', handleMove)
+      document.removeEventListener('pointermove', handleMove)
       document.removeEventListener('mouseover', handleEnter)
       cancelAnimationFrame(raf)
     }
-  }, [hover, reducedMotion])
+  }, [reducedMotion])
 
   if (hidden) return null
 
@@ -81,17 +70,24 @@ export default function CustomCursor() {
       <div
         ref={dotRef}
         className="pointer-events-none fixed top-0 left-0 z-[999] w-1.5 h-1.5 rounded-full bg-gold-400 mix-blend-difference"
-        style={{ transition: 'width 0.3s ease, height 0.3s ease' }}
+        style={{ transform: 'translate3d(-100px, -100px, 0)' }}
       />
       <div
         ref={ringRef}
-        className="pointer-events-none fixed top-0 left-0 z-[998] w-10 h-10 rounded-full border border-gold-400/60 flex items-center justify-center transition-transform duration-300 ease-out"
+        className="pointer-events-none fixed top-0 left-0 z-[998]"
+        style={{ transform: 'translate3d(-100px, -100px, 0)' }}
       >
-        {text && (
-          <span className="text-[10px] tracking-widest uppercase text-gold-400 font-mono">
-            {text}
-          </span>
-        )}
+        {/* Scale lives on a child so its transition never fights the position updates. */}
+        <div
+          className="w-10 h-10 rounded-full border border-gold-400/60 flex items-center justify-center transition-transform duration-200 ease-out"
+          style={{ transform: `scale(${hover ? 2.4 : 1})` }}
+        >
+          {text && (
+            <span className="text-[10px] tracking-widest uppercase text-gold-400 font-mono">
+              {text}
+            </span>
+          )}
+        </div>
       </div>
     </>
   )
