@@ -22,7 +22,7 @@ export default function Models(){
       const split=new SplitType(headingRef.current,{types:'lines,words',lineClass:'reveal-line'})
       splitCleanup.push(()=>split.revert())
       gsap.set(split.words,{yPercent:110})
-      ScrollTrigger.create({trigger:headingRef.current,start:'top 80%',onEnter:()=>gsap.to(split.words,{yPercent:0,duration:1.25,ease:'expo.out',stagger:.035})})
+      ScrollTrigger.create({trigger:headingRef.current,start:'top 80%',onEnter:()=>gsap.to(split.words,{yPercent:0,duration:.6,ease:'expo.out',stagger:.02})})
     },sectionRef)
     return()=>{ctx.revert();splitCleanup.forEach(cleanup=>cleanup())}
   },[reducedMotion])
@@ -68,7 +68,7 @@ function ModelCard({model,onConfigure}){
   useEffect(()=>{
     const ctx=gsap.context(()=>{
       if(reducedMotion)return
-      gsap.fromTo(imgRef.current,{scale:1.06},{scale:1,duration:1.3,ease:'expo.out',scrollTrigger:{trigger:cardRef.current,start:'top 90%'}})
+      gsap.fromTo(imgRef.current,{scale:1.06},{scale:1,duration:.6,ease:'expo.out',scrollTrigger:{trigger:cardRef.current,start:'top 90%'}})
     },cardRef)
     return()=>ctx.revert()
   },[reducedMotion])

@@ -75,7 +75,7 @@ export default function Contact({initialConfiguration:seedConfiguration={}}){
       const split=new SplitType(headingRef.current,{types:'lines,words',lineClass:'reveal-line'})
       splitCleanup.push(()=>split.revert())
       gsap.set(split.words,{yPercent:110})
-      ScrollTrigger.create({trigger:headingRef.current,start:'top 80%',onEnter:()=>gsap.to(split.words,{yPercent:0,duration:1.2,ease:'expo.out',stagger:.035})})
+      ScrollTrigger.create({trigger:headingRef.current,start:'top 80%',onEnter:()=>gsap.to(split.words,{yPercent:0,duration:.6,ease:'expo.out',stagger:.02})})
     },sectionRef)
     return()=>{ctx.revert();splitCleanup.forEach(cleanup=>cleanup())}
   },[reducedMotion])
@@ -107,6 +107,14 @@ export default function Contact({initialConfiguration:seedConfiguration={}}){
   const change=(event)=>{
     const {name,type,checked,value}=event.target
     setField(name,type==='checkbox'?checked:value)
+  }
+
+  // Validate inline as soon as a filled-in field is left, instead of waiting for submit.
+  const blur=(event)=>{
+    const {name,value}=event.target
+    if(!value.trim())return
+    const fieldError=validate(form)[name]
+    setErrors(current=>current[name]===fieldError?current:{...current,[name]:fieldError})
   }
 
   const submit=async(event)=>{
@@ -165,10 +173,10 @@ export default function Contact({initialConfiguration:seedConfiguration={}}){
   return <section id="contact" ref={sectionRef} className="relative py-24 md:py-40 bg-navy-800 text-cream-200 overflow-hidden"><div className="max-w-[1600px] mx-auto px-6 md:px-12"><div className="grid grid-cols-12 gap-4 md:gap-8 mb-12 md:mb-20"><div className="col-span-12 md:col-span-4"><div className="section-label text-cream-200/50"><span className="text-gold-300">07</span> / 07 — SIGUIENTE PASO</div></div><div className="col-span-12 md:col-span-8"><h2 ref={headingRef} className="font-display text-display leading-[.95] tracking-tightest">Hablemos<br/><em className="italic text-gold-300 font-light">de tu proyecto.</em></h2><p className="mt-8 max-w-2xl text-cream-200/70 text-lg">Cuéntanos qué VORA te interesa y en qué punto estás. Si ya tienes parcela, podremos valorar su encaje inicial.</p></div></div>
     <div className="grid grid-cols-12 gap-8 md:gap-12"><form noValidate onSubmit={submit} aria-busy={status==='sending'} className="col-span-12 md:col-span-8 border-t border-cream-200/10">
       {hasSelection&&<SelectionSummary model={selectedModel} selection={form}/>} 
-      <Field label="Nombre" name="name" autoComplete="name" value={form.name} onChange={change} error={errors.name} required/>
-      <Field label="Teléfono" name="phone" type="tel" inputMode="tel" autoComplete="tel" value={form.phone} onChange={change} error={errors.phone} required/>
-      <Field label="Email" name="email" type="email" inputMode="email" autoComplete="email" value={form.email} onChange={change} error={errors.email}/>
-      <Field label="Provincia" name="province" autoComplete="address-level1" value={form.province} onChange={change} error={errors.province} required/>
+      <Field label="Nombre" name="name" autoComplete="name" value={form.name} onChange={change} onBlur={blur} error={errors.name} required/>
+      <Field label="Teléfono" name="phone" type="tel" inputMode="tel" autoComplete="tel" value={form.phone} onChange={change} onBlur={blur} error={errors.phone} required/>
+      <Field label="Email" name="email" type="email" inputMode="email" autoComplete="email" value={form.email} onChange={change} onBlur={blur} error={errors.email}/>
+      <Field label="Provincia" name="province" autoComplete="address-level1" value={form.province} onChange={change} onBlur={blur} error={errors.province} required/>
       <Selector label="Situación del terreno" options={PLOT_OPTIONS} value={form.plot} onSelect={value=>{track('land_status_select',{land_status:plotAnalyticsValue(value),source:form.source,placement:'contact'});setField('plot',value)}}/>
       <Selector label="Modelo" options={HOUSES.map(h=>h.name)} value={form.model} prefix="VORA " onSelect={value=>setField('model',value)}/>
       <input type="text" name="website" value={form.website} onChange={change} className="hidden" tabIndex="-1" autoComplete="off" aria-hidden="true"/>
