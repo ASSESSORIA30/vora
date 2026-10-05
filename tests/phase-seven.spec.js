@@ -57,7 +57,7 @@ test('plan can be expanded, panned and zoomed with keyboard-safe controls',async
   await expect(dialog).toBeVisible()
   await expect(dialog.getByRole('button',{name:'Cerrar plano ampliado'})).toBeFocused()
   await expect(page.locator('body')).toHaveCSS('overflow','hidden')
-  expect(await dialog.locator('[data-lenis-prevent]').evaluate(element=>element.scrollWidth>element.clientWidth)).toBe(true)
+  expect(await dialog.locator('[data-plan-scroller]').evaluate(element=>element.scrollWidth>element.clientWidth)).toBe(true)
   await expect(dialog.getByRole('status')).toHaveText('125%')
   await dialog.getByRole('button',{name:'Ampliar plano'}).click()
   await expect(dialog.getByRole('status')).toHaveText('150%')

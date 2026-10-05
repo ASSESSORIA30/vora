@@ -10,12 +10,10 @@ const INCLUDED = [
 export default function ModelDetail({ model, onClose }) {
   useEffect(() => {
     if (!model) return
-    window.lenis?.stop?.()
     document.body.style.overflow = 'hidden'
     const onKey = (e) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
     return () => {
-      window.lenis?.start?.()
       document.body.style.overflow = ''
       window.removeEventListener('keydown', onKey)
     }
@@ -28,7 +26,7 @@ export default function ModelDetail({ model, onClose }) {
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           transition={{ duration: .45 }}
           className="fixed inset-0 z-[90] bg-cream-200 text-navy-700 overflow-y-auto"
-          data-lenis-prevent
+         
         >
           <button onClick={onClose} className="fixed top-5 right-5 md:top-7 md:right-8 z-[100] w-12 h-12 rounded-full bg-cream-200/90 backdrop-blur-xl border border-navy-700/10 flex items-center justify-center hover:bg-navy-700 hover:text-cream-200 transition-colors" aria-label="Cerrar ficha">
             <X size={18}/>
@@ -99,7 +97,7 @@ export default function ModelDetail({ model, onClose }) {
           <section className="concrete-surface py-24 md:py-36 overflow-hidden">
             <div className="relative z-10 max-w-[1600px] mx-auto px-6 md:px-12 grid grid-cols-12 gap-6 items-end">
               <div className="col-span-12 lg:col-span-8"><div className="section-label text-navy-700/50 mb-5">VORA {model.name}</div><h3 className="font-display text-display leading-[.9] tracking-tightest">Esta puede ser<br/>tu próxima casa.</h3></div>
-              <div className="col-span-12 lg:col-span-4 lg:text-right mt-8 lg:mt-0"><button onClick={()=>{onClose();setTimeout(()=>window.lenis?.scrollTo(document.querySelector('#contact'),{offset:-20,duration:1.4}),350)}} className="btn-primary"><span>Quiero esta VORA</span><ArrowUpRight size={16}/></button><p className="mt-5 text-sm text-navy-700/55">Distribución conceptual sujeta a adaptación técnica, urbanística y estructural.</p></div>
+              <div className="col-span-12 lg:col-span-4 lg:text-right mt-8 lg:mt-0"><button onClick={()=>{onClose();setTimeout(()=>document.querySelector('#contact')?.scrollIntoView({behavior:'smooth'}),350)}} className="btn-primary"><span>Quiero esta VORA</span><ArrowUpRight size={16}/></button><p className="mt-5 text-sm text-navy-700/55">Distribución conceptual sujeta a adaptación técnica, urbanística y estructural.</p></div>
             </div>
           </section>
         </motion.div>

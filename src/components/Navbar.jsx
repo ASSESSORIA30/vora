@@ -24,9 +24,6 @@ export default function Navbar({ forceLight = false }) {
   useEffect(() => {
     if (!open) return
     const previousOverflow = document.body.style.overflow
-    const lenis = window.lenis
-    const wasStopped = lenis?.isStopped
-    lenis?.stop()
     document.body.style.overflow = 'hidden'
     const focusable = () => Array.from(menuRef.current?.querySelectorAll('a[href],button:not([disabled])') || [])
     focusable()[0]?.focus()
@@ -56,7 +53,6 @@ export default function Navbar({ forceLight = false }) {
       document.removeEventListener('keydown', onKey)
       desktop.removeEventListener('change', onResize)
       document.body.style.overflow = previousOverflow
-      if (!wasStopped) lenis?.start()
       triggerRef.current?.focus({ preventScroll: true })
     }
   }, [open])
@@ -72,7 +68,7 @@ export default function Navbar({ forceLight = false }) {
         </div>
       </div>
     </header>
-    {open && <div ref={menuRef} id="mobile-navigation" role="dialog" aria-modal="true" aria-label="Navegación principal" data-lenis-prevent className="mobile-navigation fixed inset-0 z-[60] bg-navy-800 text-cream-200 flex flex-col overflow-y-auto">
+    {open && <div ref={menuRef} id="mobile-navigation" role="dialog" aria-modal="true" aria-label="Navegación principal" className="mobile-navigation fixed inset-0 z-[60] bg-navy-800 text-cream-200 flex flex-col overflow-y-auto">
       <div className="flex items-center justify-between p-6"><BrandLogo light/><button type="button" aria-label="Cerrar menú" onClick={() => setOpen(false)} className="w-11 h-11 rounded-full border border-cream-200/20 flex items-center justify-center"><X size={18}/></button></div>
       <div className="flex-1 flex flex-col justify-center px-6 gap-3">{NAV.map(([label, href], index) => <a key={href} href={href} onClick={() => setOpen(false)} style={{ '--menu-index': index }} className="mobile-navigation-link min-h-12 flex items-center font-display text-4xl sm:text-5xl tracking-tightest">{label}</a>)}</div>
       <div className="p-6 border-t border-cream-200/10 section-label text-cream-200/50">VORA · CONCRETE LIVING</div>

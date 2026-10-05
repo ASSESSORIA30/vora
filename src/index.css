@@ -28,11 +28,6 @@ body {
 ::-webkit-scrollbar-thumb { background: rgba(36,35,31,.24); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
 .font-display { font-optical-sizing: auto; font-variation-settings: "SOFT" 35, "WONK" 0; font-feature-settings: "ss01", "liga", "dlig"; }
-html.lenis, html.lenis body { height: auto; }
-.lenis.lenis-smooth { scroll-behavior: auto !important; }
-.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
-.lenis.lenis-stopped { overflow: hidden; }
-.lenis.lenis-scrolling iframe { pointer-events: none; }
 .reveal-line { overflow: hidden; display: block; }
 .reveal-line > span { display: inline-block; transform: translateY(110%); will-change: transform; }
 .noise-overlay::before {
@@ -107,7 +102,4 @@ section[id] { scroll-margin-top: 6rem; }
     scroll-behavior: auto !important;
   }
   .reveal-line > span { transform: none !important; }
-  .motion-collection { height: auto !important; }
-  .motion-collection-track { flex-direction: column !important; width: 100%; }
-  .motion-collection-card { width: 100% !important; max-width: 720px; margin-inline: auto; }
 }
