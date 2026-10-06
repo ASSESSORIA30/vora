@@ -26,7 +26,7 @@ export default function Hero(){
   useEffect(()=>{
     if(reducedMotion)return
     const ctx=gsap.context(()=>{
-      gsap.fromTo(mediaRef.current,{scale:1.02},{scale:1,duration:1.35,ease:'power2.out'})
+      gsap.fromTo(mediaRef.current,{scale:1.02},{scale:1,duration:.6,ease:'power2.out'})
       gsap.to(mediaRef.current,{scale:1.06,ease:'none',scrollTrigger:{trigger:heroRef.current,start:'top top',end:'bottom top',scrub:1}})
     },heroRef)
     return()=>ctx.revert()

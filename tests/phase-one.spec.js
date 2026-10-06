@@ -55,7 +55,7 @@ test('reduced motion keeps content and statistics visible without video or smoot
   await expect(page.locator('#about')).toContainText('07')
   await expect(page.locator('#about')).toContainText('03—05')
   await expect(page.locator('.marquee-track')).toHaveCSS('animation-name', 'none')
-  await expect(page.locator('#models .motion-collection-track')).toHaveCSS('flex-direction', 'column')
+  await expect(page.locator('#models .motion-collection')).toHaveCSS('overflow-x', 'auto')
   await expect(page.locator('#contact h2')).toBeVisible()
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   await expect(page.locator('#top video')).toHaveCount(1)

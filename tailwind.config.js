@@ -48,7 +48,7 @@ export default {
         title: 'clamp(2rem, 4vw, 4.5rem)',
       },
       letterSpacing: {
-        tightest: '-0.06em',
+        tightest: '-0.04em',
         'tighter-2': '-0.04em',
       },
       transitionTimingFunction: {

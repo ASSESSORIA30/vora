@@ -31,8 +31,8 @@ export default function Process(){
       const split=new SplitType(headingRef.current,{types:'lines,words',lineClass:'reveal-line'})
       splitCleanup.push(()=>split.revert())
       gsap.set(split.words,{yPercent:110})
-      ScrollTrigger.create({trigger:headingRef.current,start:'top 80%',onEnter:()=>gsap.to(split.words,{yPercent:0,duration:1.2,ease:'expo.out',stagger:.035})})
-      gsap.from(sectionRef.current.querySelectorAll('[data-step]'),{opacity:0,y:40,duration:1,stagger:.09,ease:'expo.out',scrollTrigger:{trigger:sectionRef.current.querySelector('[data-steps]'),start:'top 80%'}})
+      ScrollTrigger.create({trigger:headingRef.current,start:'top 80%',onEnter:()=>gsap.to(split.words,{yPercent:0,duration:.6,ease:'expo.out',stagger:.02})})
+      gsap.from(sectionRef.current.querySelectorAll('[data-step]'),{opacity:0,y:40,duration:.6,stagger:.05,ease:'expo.out',scrollTrigger:{trigger:sectionRef.current.querySelector('[data-steps]'),start:'top 80%'}})
     },sectionRef)
     return()=>{ctx.revert();splitCleanup.forEach(cleanup=>cleanup())}
   },[reducedMotion])
