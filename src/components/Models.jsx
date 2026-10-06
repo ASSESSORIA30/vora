@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import SplitType from 'split-type'
-import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { HOUSES } from '../data/houses'
 import useMediaQuery from '../hooks/useMediaQuery'
 import { navigateToJourneySection } from '../lib/configuration'
@@ -12,8 +12,7 @@ gsap.registerPlugin(ScrollTrigger)
 
 export default function Models(){
   const reducedMotion=useMediaQuery('(prefers-reduced-motion: reduce)')
-  const sectionRef=useRef(null),headingRef=useRef(null),scrollerRef=useRef(null)
-  const [edges,setEdges]=useState({start:true,end:false})
+  const sectionRef=useRef(null),headingRef=useRef(null),trackRef=useRef(null),pinRef=useRef(null)
 
   useEffect(()=>{
     const splitCleanup=[]
@@ -23,26 +22,19 @@ export default function Models(){
       splitCleanup.push(()=>split.revert())
       gsap.set(split.words,{yPercent:110})
       ScrollTrigger.create({trigger:headingRef.current,start:'top 80%',onEnter:()=>gsap.to(split.words,{yPercent:0,duration:.6,ease:'expo.out',stagger:.02})})
+      const mm=gsap.matchMedia()
+      mm.add('(min-width:1024px)',()=>{
+        const getDistance=()=>Math.max(0,trackRef.current.scrollWidth-window.innerWidth+80)
+        gsap.to(trackRef.current,{x:()=>-getDistance(),ease:'none',scrollTrigger:{trigger:pinRef.current,pin:true,scrub:1,start:'top top',end:()=>`+=${getDistance()}`,invalidateOnRefresh:true}})
+      })
+      // Re-measure the pinned track once fonts and images have settled the layout.
+      const refresh=()=>ScrollTrigger.refresh()
+      window.addEventListener('load',refresh)
+      document.fonts?.ready.then(refresh)
+      splitCleanup.push(()=>window.removeEventListener('load',refresh))
     },sectionRef)
     return()=>{ctx.revert();splitCleanup.forEach(cleanup=>cleanup())}
   },[reducedMotion])
-
-  // Native horizontal scroll: the user drives it with trackpad, touch or the arrows — vertical scrolling stays vertical.
-  useEffect(()=>{
-    const scroller=scrollerRef.current
-    if(!scroller)return
-    const update=()=>setEdges({start:scroller.scrollLeft<=4,end:scroller.scrollLeft+scroller.clientWidth>=scroller.scrollWidth-4})
-    update()
-    scroller.addEventListener('scroll',update,{passive:true})
-    window.addEventListener('resize',update)
-    return()=>{scroller.removeEventListener('scroll',update);window.removeEventListener('resize',update)}
-  },[])
-  const step=(direction)=>{
-    const scroller=scrollerRef.current
-    const card=scroller?.querySelector('.motion-collection-card')
-    if(!card)return
-    scroller.scrollBy({left:direction*(card.offsetWidth+48),behavior:reducedMotion?'auto':'smooth'})
-  }
 
   const configure=(event,model)=>{
     event.preventDefault()
@@ -57,8 +49,8 @@ export default function Models(){
 
   return <section id="models" ref={sectionRef} className="relative bg-navy-700 text-cream-200 overflow-hidden">
     <div className="pt-24 md:pt-40 pb-12 md:pb-24 px-6 md:px-12 max-w-[1600px] mx-auto"><div className="grid grid-cols-12 gap-4 md:gap-8"><div className="col-span-12 md:col-span-4"><div className="section-label text-cream-200/50"><span className="text-gold-300">02</span> / 07 — COLECCIÓN</div></div><div className="col-span-12 md:col-span-8"><h2 ref={headingRef} className="font-display text-display leading-[.95] tracking-tightest">Siete casas.<br/><em className="italic text-gold-300 font-light">Una misma</em> idea.</h2><p className="mt-7 max-w-xl text-cream-200/70 text-base md:text-lg leading-relaxed">Compara de un vistazo capacidad y carácter. Puedes abrir la ficha o empezar a configurar el modelo directamente.</p></div></div></div>
-    <div><div ref={scrollerRef} role="region" aria-label="Colección de modelos" tabIndex={0} className="motion-collection lg:overflow-x-auto lg:snap-x lg:snap-mandatory lg:scroll-px-12 no-scrollbar overscroll-x-contain"><div className="motion-collection-track flex flex-col lg:flex-row gap-4 md:gap-7 lg:gap-12 px-6 md:px-12 lg:w-max lg:pb-4">{HOUSES.map(model=><ModelCard key={model.id} model={model} onConfigure={configure}/>)}<div className="flex-shrink-0 w-full lg:w-[520px] lg:snap-start flex flex-col justify-center gap-5 lg:pl-10 border-t lg:border-t-0 lg:border-l border-cream-200/10 py-10 lg:py-0"><div className="section-label text-gold-300">SIGUIENTE PASO</div><h3 className="font-display text-4xl md:text-6xl tracking-tightest leading-[.95]">¿Ya tienes<br/><em className="italic text-gold-300 font-light">un modelo?</em></h3><div className="flex flex-wrap gap-4"><a href="/?source=model-collection#configurator" onClick={(event)=>continueJourney(event,'configurator')} className="min-h-12 inline-flex items-center gap-3 text-sm font-medium link-underline">Configurar <ArrowUpRight size={14}/></a><a href="/?source=model-collection#contact" onClick={(event)=>continueJourney(event,'contact')} className="min-h-12 inline-flex items-center gap-3 text-sm font-medium link-underline">Hablar del proyecto <ArrowUpRight size={14}/></a></div></div></div></div></div>
-    <div className="hidden lg:flex items-center gap-6 max-w-[1600px] mx-auto px-6 md:px-12 pt-8 pb-12"><div className="flex gap-2 flex-none"><button type="button" onClick={()=>step(-1)} disabled={edges.start} aria-label="Modelo anterior" className="w-11 h-11 rounded-full border border-cream-200/20 flex items-center justify-center transition-colors hover:bg-cream-200 hover:text-navy-700 disabled:opacity-30 disabled:pointer-events-none"><ArrowLeft size={16}/></button><button type="button" onClick={()=>step(1)} disabled={edges.end} aria-label="Modelo siguiente" className="w-11 h-11 rounded-full border border-cream-200/20 flex items-center justify-center transition-colors hover:bg-cream-200 hover:text-navy-700 disabled:opacity-30 disabled:pointer-events-none"><ArrowRight size={16}/></button></div><div className="flex gap-3 overflow-x-auto no-scrollbar">{HOUSES.map(h=><a key={h.id} href={`/modelos/${h.id}`} onClick={()=>track('select_model',{model:h.id,source:'model-collection',placement:'collection_nav'})} className="flex-shrink-0 min-h-11 px-4 py-2 rounded-full border border-cream-200/15 text-xs uppercase tracking-[.14em] hover:bg-cream-200 hover:text-navy-700 transition-colors">{h.name==='Signature'?'Signature':h.name}</a>)}</div></div>
+    <div ref={pinRef}><div className="motion-collection lg:h-screen overflow-hidden flex items-center"><div ref={trackRef} className="motion-collection-track flex flex-col lg:flex-row gap-4 md:gap-7 lg:gap-12 px-6 md:px-12 lg:pr-32 lg:will-change-transform">{HOUSES.map(model=><ModelCard key={model.id} model={model} onConfigure={configure}/>)}<div className="flex-shrink-0 w-full lg:w-[520px] flex flex-col justify-center gap-5 lg:pl-10 border-t lg:border-t-0 lg:border-l border-cream-200/10 py-10 lg:py-0"><div className="section-label text-gold-300">SIGUIENTE PASO</div><h3 className="font-display text-4xl md:text-6xl tracking-tightest leading-[.95]">¿Ya tienes<br/><em className="italic text-gold-300 font-light">un modelo?</em></h3><div className="flex flex-wrap gap-4"><a href="/?source=model-collection#configurator" onClick={(event)=>continueJourney(event,'configurator')} className="min-h-12 inline-flex items-center gap-3 text-sm font-medium link-underline">Configurar <ArrowUpRight size={14}/></a><a href="/?source=model-collection#contact" onClick={(event)=>continueJourney(event,'contact')} className="min-h-12 inline-flex items-center gap-3 text-sm font-medium link-underline">Hablar del proyecto <ArrowUpRight size={14}/></a></div></div></div></div></div>
+    <div className="hidden lg:block max-w-[1600px] mx-auto px-6 md:px-12 pb-12"><div className="flex gap-3 overflow-x-auto no-scrollbar">{HOUSES.map(h=><a key={h.id} href={`/modelos/${h.id}`} onClick={()=>track('select_model',{model:h.id,source:'model-collection',placement:'collection_nav'})} className="flex-shrink-0 min-h-11 px-4 py-2 rounded-full border border-cream-200/15 text-xs uppercase tracking-[.14em] hover:bg-cream-200 hover:text-navy-700 transition-colors">{h.name==='Signature'?'Signature':h.name}</a>)}</div></div>
   </section>
 }
 
@@ -73,7 +65,7 @@ function ModelCard({model,onConfigure}){
     return()=>ctx.revert()
   },[reducedMotion])
 
-  return <article ref={cardRef} className="motion-collection-card group flex-shrink-0 w-full lg:w-[720px] lg:snap-start border-t border-cream-200/12 pt-4 lg:border-0 lg:pt-0">
+  return <article ref={cardRef} className="motion-collection-card group flex-shrink-0 w-full lg:w-[720px] border-t border-cream-200/12 pt-4 lg:border-0 lg:pt-0">
     <div className="grid grid-cols-[112px_minmax(0,1fr)] gap-4 lg:block">
       <a href={`/modelos/${model.id}`} onClick={()=>track('select_model',{model:model.id,source:'model-collection',placement:'collection_card'})} aria-label={`Ver ficha de VORA ${model.name}`} className="block">
         <div className="relative h-full min-h-[170px] lg:min-h-0 lg:aspect-[16/10] overflow-hidden bg-navy-500"><div ref={imgRef} className="absolute inset-0"><img src={model.image} alt={`VORA ${model.name}, casa industrializada de hormigón`} className="w-full h-full object-cover transition-transform duration-[1400ms] motion-reduce:transition-none group-hover:scale-[1.035]" loading="lazy" decoding="async"/></div><div className="absolute inset-0 bg-gradient-to-t from-navy-900/78 via-transparent to-navy-900/10"/><div className="absolute top-3 left-3 section-label text-cream-200/80 lg:top-5 lg:left-5">{model.code}</div><div className="absolute bottom-3 inset-x-3 lg:bottom-0 lg:inset-x-0 lg:p-8"><div className="section-label text-cream-200/55 mb-1">VORA</div><h3 className="font-display text-4xl lg:text-8xl tracking-tightest leading-none break-words">{model.name}</h3></div></div>

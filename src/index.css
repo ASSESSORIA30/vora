@@ -124,4 +124,7 @@ section[id] { scroll-margin-top: 6rem; }
     scroll-behavior: auto !important;
   }
   .reveal-line > span { transform: none !important; }
+  .motion-collection { height: auto !important; }
+  .motion-collection-track { flex-direction: column !important; width: 100%; }
+  .motion-collection-card { width: 100% !important; max-width: 720px; margin-inline: auto; }
 }
