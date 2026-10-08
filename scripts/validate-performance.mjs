@@ -13,7 +13,7 @@ const totals = (extension) => assets.filter(({ name }) => name.endsWith(extensio
 const jsGzip = totals('.js')
 const cssGzip = totals('.css')
 const limits = { jsGzip: 200_000, cssGzip: 12_000, video: 5_000_000 }
-const videos = ['public/media/hero/hero-mobile.mp4', 'public/media/hero/hero-desktop.mp4'].map((file) => ({ file, bytes: fs.statSync(file).size }))
+const videos = ['public/media/hero/hero-mobile.mp4', 'public/media/hero/hero-desktop.mp4', 'public/media/construction/construction-mobile.mp4', 'public/media/construction/construction-desktop.mp4'].map((file) => ({ file, bytes: fs.statSync(file).size }))
 const failures = []
 if (jsGzip > limits.jsGzip) failures.push(`JavaScript gzip ${jsGzip} exceeds ${limits.jsGzip}`)
 if (cssGzip > limits.cssGzip) failures.push(`CSS gzip ${cssGzip} exceeds ${limits.cssGzip}`)
