@@ -133,50 +133,47 @@ export default function ConstructionScroll() {
     }
   }, [staticMode, near, mobile])
 
-  if (staticMode) return <section id="construction" aria-labelledby="construction-title" className="relative bg-navy-800 text-cream-200">
-    <div className="relative h-[100svh] min-h-[560px] overflow-hidden">
-      <img src="/media/construction/construction-end.jpg" alt="Vivienda VORA de hormigón terminada, con piscina y vistas al mar" width="1280" height="960" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover object-center"/>
-      <div className="absolute inset-0 construction-veil"/>
-      <div className="relative z-10 h-full max-w-[1600px] mx-auto px-6 md:px-12 flex flex-col justify-end pb-12 md:pb-20">
-        <div className="section-label text-cream-200/70 mb-5">CONSTRUCCIÓN INDUSTRIALIZADA</div>
-        <h2 id="construction-title" className="font-display text-[clamp(2.6rem,7vw,6.5rem)] leading-[.92] tracking-tightest">VORA —<br/><em className="italic font-light text-gold-200">Concrete Living</em></h2>
-        <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 section-label text-cream-200/70">
+  if (staticMode) return <section id="construction" aria-labelledby="construction-title" className="relative bg-navy-800 text-cream-200 py-24 md:py-32">
+    <div className="max-w-[1600px] mx-auto px-6 md:px-12 grid md:grid-cols-12 gap-10 md:gap-8 items-center">
+      <div className="md:col-span-5">
+        <div className="section-label text-cream-200/70 mb-6">CONSTRUCCIÓN INDUSTRIALIZADA</div>
+        <h2 id="construction-title" className="font-display text-[clamp(2.4rem,4.6vw,5rem)] leading-[.92] tracking-tightest">VORA —<br/><em className="italic font-light text-gold-200">Concrete Living</em></h2>
+        <ul className="mt-8 space-y-2 section-label text-cream-200/70">
           {['El futuro de la construcción', 'Precisión industrial', 'Hormigón. Diseño. Solidez.', 'Cada detalle importa'].map(item => <li key={item}>{item}</li>)}
         </ul>
       </div>
+      <figure className="construction-frame md:col-span-7 md:justify-self-end">
+        <img src="/media/construction/construction-end.jpg" alt="Vivienda VORA de hormigón terminada, con piscina y vistas al mar" width="1280" height="960" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover"/>
+      </figure>
     </div>
   </section>
 
   const src = mobile ? '/media/construction/construction-mobile.mp4' : '/media/construction/construction-desktop.mp4'
   return <section id="construction" ref={sectionRef} aria-labelledby="construction-title" className="construction-scroll relative h-[350vh] bg-navy-800 text-cream-200">
-    <div className="sticky top-0 h-screen h-[100svh] overflow-hidden">
-      <img src="/media/construction/construction-start.jpg" alt="" width="1280" height="960" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover object-center"/>
-      {near && <video key={src} ref={videoRef} src={src} muted playsInline preload="auto" disablePictureInPicture disableRemotePlayback tabIndex={-1} aria-hidden="true" className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-500 ease-out ${ready ? 'opacity-100' : 'opacity-0'}`}/>}
-      <div className="absolute inset-0 construction-veil"/>
-
-      <div className="absolute top-0 inset-x-0 z-10 pt-24 md:pt-28 px-6 md:px-12">
-        <div className="max-w-[1600px] mx-auto flex justify-between section-label text-cream-200/70">
-          <span>CONSTRUCCIÓN INDUSTRIALIZADA</span>
-          <span className="hidden md:inline">DESLIZA PARA CONSTRUIR</span>
-        </div>
+    <div className="sticky top-0 h-screen h-[100svh] overflow-hidden flex flex-col px-6 md:px-12 pt-24 md:pt-28 pb-7 md:pb-10">
+      <div className="w-full max-w-[1600px] mx-auto flex justify-between section-label text-cream-200/70">
+        <span>CONSTRUCCIÓN INDUSTRIALIZADA</span>
+        <span className="hidden md:inline">DESLIZA PARA CONSTRUIR</span>
       </div>
 
       <h2 id="construction-title" className="sr-only">VORA — Concrete Living: así se construye una vivienda industrializada de hormigón</h2>
-      <div className="absolute inset-x-0 bottom-0 z-10 px-6 md:px-12 pb-24 md:pb-28">
-        <div className="relative max-w-[1600px] mx-auto min-h-[8.5rem] md:min-h-[12rem]">
-          {CAPTIONS.map((caption, index) => <div key={caption.kicker} ref={node => { captionRefs.current[index] = node }} aria-hidden="true" className="construction-caption absolute left-0 bottom-0 max-w-4xl" style={{ opacity: index === 0 ? 1 : 0, visibility: index === 0 ? 'visible' : 'hidden' }}>
+      <div className="flex-1 min-h-0 w-full max-w-[1600px] mx-auto flex flex-col justify-center gap-8 md:grid md:grid-cols-12 md:items-center md:gap-8 py-6">
+        <div className="construction-frame md:col-span-7 md:col-start-6 md:row-start-1 md:justify-self-end">
+          <img src="/media/construction/construction-start.jpg" alt="" width="1280" height="960" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover"/>
+          {near && <video key={src} ref={videoRef} src={src} muted playsInline preload="auto" disablePictureInPicture disableRemotePlayback tabIndex={-1} aria-hidden="true" className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-out ${ready ? 'opacity-100' : 'opacity-0'}`}/>}
+        </div>
+        <div className="relative min-h-[7.5rem] md:min-h-[11rem] md:col-span-5 md:row-start-1">
+          {CAPTIONS.map((caption, index) => <div key={caption.kicker} ref={node => { captionRefs.current[index] = node }} aria-hidden="true" className="construction-caption absolute left-0 top-0 md:top-1/2 md:-mt-[5.5rem]" style={{ opacity: index === 0 ? 1 : 0, visibility: index === 0 ? 'visible' : 'hidden' }}>
             <div className="section-label text-gold-200/90 mb-4">{caption.kicker}</div>
-            <p className="font-display text-[clamp(2.4rem,6.4vw,6rem)] leading-[.92] tracking-tightest">{caption.text}</p>
+            <p className="font-display text-[clamp(2.1rem,4.4vw,4.75rem)] leading-[.94] tracking-tightest">{caption.text}</p>
           </div>)}
         </div>
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 z-10 px-6 md:px-12 pb-7 md:pb-10">
-        <div className="max-w-[1600px] mx-auto flex items-center gap-5 section-label text-cream-200/70">
-          <span aria-hidden="true"><span ref={counterRef}>000</span> %</span>
-          <div className="relative flex-1 h-px bg-cream-200/20 overflow-hidden"><div ref={barRef} className="absolute inset-0 bg-cream-200 origin-left" style={{ transform: 'scaleX(0)' }}/></div>
-          <span>VORA · CONCRETE LIVING</span>
-        </div>
+      <div className="w-full max-w-[1600px] mx-auto flex items-center gap-5 section-label text-cream-200/70">
+        <span aria-hidden="true"><span ref={counterRef}>000</span> %</span>
+        <div className="relative flex-1 h-px bg-cream-200/20 overflow-hidden"><div ref={barRef} className="absolute inset-0 bg-cream-200 origin-left" style={{ transform: 'scaleX(0)' }}/></div>
+        <span>VORA · CONCRETE LIVING</span>
       </div>
     </div>
   </section>
