@@ -439,9 +439,10 @@ export default function ConstructionScroll() {
 
   return <section id="construction" ref={sectionRef} aria-labelledby="construction-title" className="construction-stage" data-moving="false">
     <h2 id="construction-title" className="sr-only">Construcción de una vivienda VORA en siete fases</h2>
-    {PHASES.map((item, index) => seen.has(index) && <img key={index} src={still(index)} alt="" width="1600" height="900" loading="lazy" decoding="async" className="construction-media construction-still" style={{ opacity: index === phase ? 1 : 0 }}/>)}
-    {near && !staticMode && !failed && <video ref={videoRef} src={VIDEO_SRC} muted playsInline preload="auto" disablePictureInPicture disableRemotePlayback tabIndex={-1} aria-hidden="true" className="construction-media construction-video" style={{ opacity: videoVisible ? 1 : 0 }}/>}
-    <div className="construction-shade" aria-hidden="true"/>
+    <div className="construction-frame">
+      {PHASES.map((item, index) => seen.has(index) && <img key={index} src={still(index)} alt="" width="1600" height="900" loading="lazy" decoding="async" className="construction-media construction-still" style={{ opacity: index === phase ? 1 : 0 }}/>)}
+      {near && !staticMode && !failed && <video ref={videoRef} src={VIDEO_SRC} muted playsInline preload="auto" disablePictureInPicture disableRemotePlayback tabIndex={-1} aria-hidden="true" className="construction-media construction-video" style={{ opacity: videoVisible ? 1 : 0 }}/>}
+    </div>
 
     <div className="construction-hud">
       {loading && <div className="hud-buffer" aria-hidden="true"><div ref={bufferRef} className="hud-buffer-bar"/></div>}
