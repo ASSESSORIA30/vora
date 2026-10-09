@@ -3,6 +3,7 @@ import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import Marquee from './components/Marquee'
 import About from './components/About'
+import ConstructionScroll from './components/ConstructionScroll'
 import Models from './components/Models'
 import ModelComparison from './components/ModelComparison'
 import ModelFinder from './components/ModelFinder'
@@ -27,7 +28,7 @@ import { GUIDE_PAGES } from './data/siteContent'
 const LANDINGS=new Set(['casas-industrializadas-hormigon','casas-hormigon-llave-en-mano','casas-modulares-premium'])
 function route(){const path=window.location.pathname.replace(/\/+$/,'')||'/';if(path==='/')return {type:'home'};const m=path.match(/^\/modelos\/(vora-[a-z0-9-]+)$/);if(m)return {type:'model',id:m[1]};const landing=path.slice(1);if(LANDINGS.has(landing))return {type:'landing',slug:landing};if(path==='/guias')return {type:'guide-index'};const guide=path.match(/^\/guias\/([a-z0-9-]+)$/);if(guide&&GUIDE_PAGES[guide[1]])return {type:'guide',slug:guide[1]};const legal=path.match(/^\/legal\/(aviso-legal|privacidad|cookies)$/);if(legal)return {type:'legal',legalType:legal[1]};return {type:'not-found'}}
 
-export function HomePage(){return <><Navbar/><main><Hero/><Marquee/><About/><Models/><ModelFinder/><ModelComparison/><Benefits/><Configurator/><Process/><LandStatus/><Gallery/><CommercialFAQ/><Contact/></main><Footer/></>}
+export function HomePage(){return <><Navbar/><main><Hero/><Marquee/><About/><ConstructionScroll/><Models/><ModelFinder/><ModelComparison/><Benefits/><Configurator/><Process/><LandStatus/><Gallery/><CommercialFAQ/><Contact/></main><Footer/></>}
 
 export default function App(){const current=useMemo(route,[]);useEffect(()=>{if(current.type!=='home'||!window.location.hash)return;const timer=setTimeout(()=>document.getElementById(decodeURIComponent(window.location.hash.slice(1)))?.scrollIntoView({behavior:'instant'}),120);return()=>clearTimeout(timer)},[current.type]);if(current.type==='model'){const model=getHouseById(current.id);return model?<><Analytics/><CookieConsent/><CustomCursor/><ModelPage model={model}/></>:<><Analytics/><CookieConsent/><NotFound/></>}if(current.type==='landing')return <><Analytics/><CookieConsent/><CustomCursor/><SearchLanding slug={current.slug}/></>;if(current.type==='guide-index')return <><Analytics/><CookieConsent/><CustomCursor/><GuideIndexPage/></>;if(current.type==='guide')return <><Analytics/><CookieConsent/><CustomCursor/><GuidePage slug={current.slug}/></>;if(current.type==='legal')return <><Analytics/><CookieConsent/><LegalPage type={current.legalType}/></>;if(current.type==='not-found')return <><Analytics/><CookieConsent/><NotFound/></>;return <><Analytics/><CookieConsent/><CustomCursor/><HomePage/></>}
 

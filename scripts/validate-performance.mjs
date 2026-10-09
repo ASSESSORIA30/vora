@@ -13,11 +13,14 @@ const totals = (extension) => assets.filter(({ name }) => name.endsWith(extensio
 const jsGzip = totals('.js')
 const cssGzip = totals('.css')
 const limits = { jsGzip: 200_000, cssGzip: 12_000, video: 5_000_000 }
-const videos = ['public/media/hero/hero-mobile.mp4', 'public/media/hero/hero-desktop.mp4'].map((file) => ({ file, bytes: fs.statSync(file).size }))
+// The construction film is kept at its original quality by decision; it is fetched
+// only as the reader approaches its section, so it has its own ceiling.
+const videoLimits = { 'public/videos/vora-construccion.mp4': 30_000_000 }
+const videos = ['public/media/hero/hero-mobile.mp4', 'public/media/hero/hero-desktop.mp4', 'public/videos/vora-construccion.mp4'].map((file) => ({ file, bytes: fs.statSync(file).size, limit: videoLimits[file] ?? limits.video }))
 const failures = []
 if (jsGzip > limits.jsGzip) failures.push(`JavaScript gzip ${jsGzip} exceeds ${limits.jsGzip}`)
 if (cssGzip > limits.cssGzip) failures.push(`CSS gzip ${cssGzip} exceeds ${limits.cssGzip}`)
-videos.forEach(({ file, bytes }) => { if (bytes > limits.video) failures.push(`${file} ${bytes} exceeds ${limits.video}`) })
+videos.forEach(({ file, bytes, limit }) => { if (bytes > limit) failures.push(`${file} ${bytes} exceeds ${limit}`) })
 
 console.log(`Performance budget: JS ${jsGzip} B gzip, CSS ${cssGzip} B gzip.`)
 videos.forEach(({ file, bytes }) => console.log(`${file}: ${bytes} B`))
