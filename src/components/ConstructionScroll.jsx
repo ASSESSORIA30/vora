@@ -1,180 +1,483 @@
 import { useEffect, useRef, useState } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import useMediaQuery from '../hooks/useMediaQuery'
+import { createGestureDetector, normalizeWheelDelta } from '../lib/scrollGesture'
 
-// Each caption peaks at its point of the build. The video occupies the first
-// VIDEO_SPAN of the scroll so the finished house holds for a moment before release.
-const CAPTIONS = [
-  { at: 0, kicker: '00 — TERRENO', text: <>El futuro de<br/><em className="italic font-light text-gold-200">la construcción</em></> },
-  { at: .25, kicker: '01 — ESTRUCTURA', text: <>Precisión<br/><em className="italic font-light text-gold-200">industrial</em></> },
-  { at: .5, kicker: '02 — VOLUMEN', text: <>Hormigón. Diseño.<br/><em className="italic font-light text-gold-200">Solidez.</em></> },
-  { at: .75, kicker: '03 — ACABADOS', text: <>Cada detalle<br/><em className="italic font-light text-gold-200">importa</em></> },
-  { at: 1, kicker: '04 — LISTA PARA VIVIR', text: <>VORA —<br/><em className="italic font-light text-gold-200">Concrete Living</em></> },
-]
-const VIDEO_SPAN = .9
+const VIDEO_SRC = '/videos/vora-construccion.mp4'
 const FPS = 24
-const HOLD = .055, FADE = .075
+// Each time was picked from the film's real frames, not from an even split.
+export const PHASES = [
+  { time: 0, title: 'Todo empieza aquí', state: 'Excavación y preparación de la parcela.' },
+  { time: 1, title: 'Cimentación', state: 'Ejecución de la cimentación de hormigón.' },
+  { time: 3, title: 'Precisión industrial', state: 'Montaje de paneles y muros estructurales de hormigón.' },
+  { time: 5, title: 'La estructura toma forma', state: 'Forjados, cubiertas y voladizos.' },
+  { time: 8.5, title: 'Arquitectura sin límites', state: 'Fachadas, cristaleras y acabados.' },
+  { time: 10.5, title: 'Cada detalle importa', state: 'Piscina, terrazas, jardines y paisajismo.' },
+  { time: 15, title: 'VORA — Concrete Living', state: 'La vivienda, completamente terminada.' },
+]
+const LAST = PHASES.length - 1
+const still = (index) => `/media/construction/phase-${index + 1}.jpg`
+const pad = (value) => String(value).padStart(2, '0')
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
+// A quarter frame in, so a seek always lands on the intended frame.
+const frameTime = (time) => (Math.round(time * FPS) + .25) / FPS
 
-const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value))
+// About this much film time per second of transition; the rate is clamped so
+// short steps play at natural speed and long jumps never feel frantic.
+const SECONDS_PER_TRANSITION = 1.2
+const MAX_RATE = 4
+const LONG_JUMP_SECONDS = 1.6
+const TOUCH_THRESHOLD = 28
+const INPUT_WINDOW = 300
+const MOMENTUM_WINDOW = 1500
+const ENGAGE_GRACE = 500
+const EXIT_MS = 750
 
-function captionState(index, progress) {
-  const { at } = CAPTIONS[index]
-  // The first and last captions stay on screen at the very edges of the section.
-  if (index === 0 && progress <= at) return { opacity: 1, offset: 0 }
-  if (index === CAPTIONS.length - 1 && progress >= at) return { opacity: 1, offset: 0 }
-  const distance = progress - at
-  const opacity = 1 - clamp((Math.abs(distance) - HOLD) / FADE)
-  return { opacity, offset: clamp(-distance / (HOLD + FADE), -1, 1) }
-}
-
-function canScrub() {
+function prefersStillImages() {
   const connection = navigator.connection
-  if (connection?.saveData || ['slow-2g', '2g'].includes(connection?.effectiveType)) return false
-  if (navigator.deviceMemory && navigator.deviceMemory <= 2) return false
-  return typeof HTMLVideoElement !== 'undefined'
+  if (connection?.saveData || ['slow-2g', '2g'].includes(connection?.effectiveType)) return true
+  return Boolean(navigator.deviceMemory && navigator.deviceMemory <= 2)
 }
+
+const isEditable = (node) => node instanceof Element && Boolean(node.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]'))
 
 export default function ConstructionScroll() {
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
-  const mobile = useMediaQuery('(max-width:767px)')
-  const [unsupported, setUnsupported] = useState(false)
+  const coarsePointer = useMediaQuery('(pointer: coarse)')
+  const [lowEnd, setLowEnd] = useState(false)
+  const [failed, setFailed] = useState(false)
   const [near, setNear] = useState(false)
-  const [ready, setReady] = useState(false)
-  const sectionRef = useRef(null), videoRef = useRef(null), barRef = useRef(null), counterRef = useRef(null)
-  const captionRefs = useRef([])
-  const staticMode = reducedMotion || unsupported
+  const [videoVisible, setVideoVisible] = useState(false)
+  const [phase, setPhase] = useState(0)
+  const [seen, setSeen] = useState(() => new Set([0]))
+  const [interactions, setInteractions] = useState(0)
+  // Without motion the build is shown as stills with buttons and the page scrolls freely.
+  const staticMode = reducedMotion || lowEnd
 
-  useEffect(() => { if (!canScrub()) setUnsupported(true) }, [])
+  const sectionRef = useRef(null), videoRef = useRef(null), bufferRef = useRef(null)
+  const phaseRef = useRef(0)
+  const readyRef = useRef(false)
+  const transitionRef = useRef(null)
+  const controlsRef = useRef({ goTo: () => {} })
 
-  // Fetch the video only as the reader approaches, so it never competes with the hero.
+  useEffect(() => { if (prefersStillImages()) setLowEnd(true) }, [])
+
+  // Start fetching the film one screen before the section, never during the hero.
   useEffect(() => {
     if (staticMode || near) return
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) { setNear(true); observer.disconnect() }
-    }, { rootMargin: '150% 0px' })
+    }, { rootMargin: '100% 0px' })
     observer.observe(sectionRef.current)
     return () => observer.disconnect()
   }, [staticMode, near])
 
+  // Gestures and transitions. This effect must not restart while the reader is
+  // mid-gesture, so it reads the <video> lazily instead of depending on it.
   useEffect(() => {
-    if (staticMode) return
-    const section = sectionRef.current, video = videoRef.current
-    let frame = 0, progress = 0, shown = -1, smoothed = 0, duration = 0, lastSeek = -1
+    const media = () => videoRef.current
+    const section = sectionRef.current
+    const root = document.documentElement
 
-    const measure = () => {
-      const rect = section.getBoundingClientRect()
-      const travel = rect.height - window.innerHeight
-      progress = travel > 0 ? clamp(-rect.top / travel) : 0
+    const showPhase = (index) => {
+      phaseRef.current = index
+      setPhase(index)
+      // Stills are only fetched while the film is not yet on screen.
+      if (!readyRef.current) setSeen(previous => previous.has(index) ? previous : new Set(previous).add(index))
     }
 
-    const paintOverlay = () => {
-      CAPTIONS.forEach((_, index) => {
-        const node = captionRefs.current[index]
-        if (!node) return
-        const { opacity, offset } = captionState(index, clamp(progress / VIDEO_SPAN))
-        node.style.opacity = opacity.toFixed(3)
-        node.style.transform = `translate3d(0, ${(offset * 18).toFixed(2)}px, 0)`
-        node.style.visibility = opacity > 0 ? 'visible' : 'hidden'
-      })
-      const built = clamp(progress / VIDEO_SPAN)
-      if (barRef.current) barRef.current.style.transform = `scaleX(${built.toFixed(4)})`
-      if (counterRef.current) counterRef.current.textContent = String(Math.round(built * 100)).padStart(3, '0')
+    // ---------------------------------------------------------------- film
+    const setMoving = (moving) => { if (section) section.dataset.moving = String(moving) }
+    const cancelTransition = () => {
+      const transition = transitionRef.current
+      if (!transition) return
+      setMoving(false)
+      transition.cancelled = true
+      transition.active = false
+      if (transition.frame) cancelAnimationFrame(transition.frame)
+      const video = media()
+      if (transition.videoFrame && video?.cancelVideoFrameCallback) video.cancelVideoFrameCallback(transition.videoFrame)
+      clearTimeout(transition.safety)
+      clearTimeout(transition.timer)
+      transitionRef.current = null
     }
 
-    // Ease the playhead towards the scroll target; seek at most once per frame and
-    // never while a previous seek is still decoding, so the decoder is never flooded.
-    const tick = () => {
-      frame = 0
-      if (shown !== progress) { shown = progress; paintOverlay() }
-      if (!duration) return
-      const target = clamp(progress / VIDEO_SPAN) * duration
-      smoothed += (target - smoothed) * .22
-      if (Math.abs(target - smoothed) < .5 / FPS) smoothed = target
-      const snapped = Math.min(duration - .001, Math.round(smoothed * FPS) / FPS)
-      if (!video.seeking && snapped !== lastSeek) {
-        lastSeek = snapped
-        video.currentTime = snapped
+    const settleOn = (target, transition) => new Promise(resolve => {
+      const video = media()
+      if (transition.cancelled || Math.abs(video.currentTime - target) < .5 / FPS) return resolve()
+      video.addEventListener('seeked', resolve, { once: true })
+      video.currentTime = target
+    })
+
+    // Forward: let the decoder play the stretch natively, then stop on the target frame.
+    const playForward = (target, rate, transition) => {
+      const video = media()
+      video.playbackRate = rate
+      return Promise.resolve(video.play()).then(() => new Promise(resolve => {
+        const stopAt = target - rate / FPS
+        const check = (_now, metadata) => {
+          if (transition.cancelled) return resolve()
+          const current = metadata?.mediaTime ?? video.currentTime
+          if (current >= stopAt || video.ended) {
+            video.pause()
+            settleOn(target, transition).then(resolve)
+            return
+          }
+          watch()
+        }
+        const watch = () => {
+          if (video.requestVideoFrameCallback) transition.videoFrame = video.requestVideoFrameCallback(check)
+          else transition.frame = requestAnimationFrame(() => check())
+        }
+        watch()
+      }))
+    }
+
+    // Backward (and forward when playback is refused, e.g. iOS Low Power Mode):
+    // walk the timeline frame by frame, issuing the next seek only once the
+    // previous one has been decoded, so a slow decoder drops frames instead of queueing them.
+    const scrub = (from, target, duration, transition) => new Promise(resolve => {
+      const video = media()
+      video.pause()
+      const start = performance.now()
+      let requested = null
+      const step = (now) => {
+        if (transition.cancelled) return resolve()
+        const progress = Math.min(1, (now - start) / (duration * 1000))
+        const next = progress >= 1 ? target : frameTime(from + (target - from) * progress)
+        if (!video.seeking) {
+          if (requested === target && progress >= 1) return resolve()
+          if (next !== requested) { requested = next; video.currentTime = next }
+        }
+        transition.frame = requestAnimationFrame(step)
       }
-      if (smoothed !== target || video.seeking) schedule()
-    }
-    const schedule = () => { if (!frame) frame = requestAnimationFrame(tick) }
-    const onScroll = () => { measure(); schedule() }
+      transition.frame = requestAnimationFrame(step)
+    })
 
-    const onMetadata = () => {
-      if (!Number.isFinite(video.duration) || video.duration <= 0) return
-      duration = video.duration
-      measure()
-      smoothed = clamp(progress / VIDEO_SPAN) * duration
-      lastSeek = -1
-      // iOS Safari only paints seeks once the element has started playback.
-      const primed = video.play()
-      if (primed?.then) primed.then(() => { video.pause(); schedule() }).catch(schedule)
-      else { video.pause(); schedule() }
+    const runFilm = (index, instant) => {
+      const video = media()
+      cancelTransition()
+      const end = Number.isFinite(video.duration) ? video.duration - .5 / FPS : Infinity
+      const target = Math.min(end, frameTime(PHASES[index].time))
+      const from = video.currentTime
+      const span = Math.abs(target - from)
+      if (instant || span < 1 / FPS) {
+        video.pause()
+        if (span >= .5 / FPS) video.currentTime = target
+        return
+      }
+      const rate = clamp(span / SECONDS_PER_TRANSITION, 1, MAX_RATE)
+      // Long jumps from the progress bar would crawl even at the top rate; those
+      // travel by seeking instead, in a fixed, brisk time.
+      const longJump = span / MAX_RATE > LONG_JUMP_SECONDS
+      const duration = longJump ? LONG_JUMP_SECONDS : span / rate
+      const transition = { active: true, cancelled: false }
+      transitionRef.current = transition
+      setMoving(true)
+      const done = () => {
+        if (transition.cancelled) return
+        clearTimeout(transition.safety)
+        transition.active = false
+        if (transitionRef.current === transition) transitionRef.current = null
+        setMoving(false)
+      }
+      // Never stay stuck between phases, even if the network stalls mid-transition.
+      transition.safety = setTimeout(() => {
+        if (transition.cancelled) return
+        cancelTransition()
+        video.pause()
+        video.currentTime = target
+      }, duration * 1000 + 2500)
+      const run = target > from && !longJump
+        ? playForward(target, rate, transition).catch(() => transition.cancelled ? undefined : scrub(video.currentTime, target, duration, transition))
+        : scrub(from, target, duration, transition)
+      run.then(done)
     }
-    const onLoaded = () => setReady(true)
-    const onError = () => setUnsupported(true)
 
-    video?.addEventListener('loadedmetadata', onMetadata)
-    video?.addEventListener('loadeddata', onLoaded)
-    video?.addEventListener('seeked', schedule)
-    video?.addEventListener('error', onError)
-    if (video && video.readyState >= 1) onMetadata()
-    if (video && video.readyState >= 2) onLoaded()
+    const goTo = (index, { instant = false, user = true } = {}) => {
+      index = clamp(index, 0, LAST)
+      if (index === phaseRef.current && !instant) return false
+      showPhase(index)
+      if (user) setInteractions(count => count + 1)
+      if (media() && readyRef.current && !staticMode) runFilm(index, instant)
+      else if (!instant) {
+        // Still images cross-fade; hold gestures for the same beat.
+        cancelTransition()
+        const transition = { active: true, cancelled: false }
+        transition.timer = setTimeout(() => { transition.active = false; if (transitionRef.current === transition) transitionRef.current = null; setMoving(false) }, 450)
+        transitionRef.current = transition
+        setMoving(true)
+      }
+      return true
+    }
+    controlsRef.current = { goTo: (index) => goTo(index), cancel: cancelTransition }
+
+    if (staticMode || !section) return () => cancelTransition()
+
+    // ---------------------------------------------------------------- engagement
+    const detector = createGestureDetector()
+    let engaged = false, engagedAt = 0, lastInput = -Infinity, lastTouchEnd = -Infinity
+    let previousTop = null, touch = null, realign = 0
+
+    const busy = () => Boolean(transitionRef.current?.active)
+    const sectionTop = () => section.getBoundingClientRect().top + window.scrollY
+
+    const engage = (fromDirection) => {
+      window.scrollTo(0, sectionTop())
+      engaged = true
+      engagedAt = performance.now()
+      root.classList.add('construction-engaged')
+      clearTimeout(realign)
+      realign = setTimeout(() => { if (engaged && Math.abs(section.getBoundingClientRect().top) >= .5) window.scrollTo(0, sectionTop()) }, ENGAGE_GRACE + 50)
+      const entry = fromDirection > 0 ? 0 : LAST
+      if (phaseRef.current !== entry) goTo(entry, { instant: true, user: false })
+    }
+    const release = () => {
+      engaged = false
+      root.classList.remove('construction-engaged')
+    }
+    // Leave towards the neighbouring section with a short glide of our own:
+    // browsers cancel a smooth scrollTo as soon as the same gesture keeps
+    // sending wheel events, so the glide owns the page until it lands.
+    let glide = 0
+    const exit = (direction) => {
+      release()
+      const from = window.scrollY
+      const to = direction > 0 ? sectionTop() + section.offsetHeight : sectionTop() - window.innerHeight * .75
+      const start = performance.now()
+      const frame = (now) => {
+        const progress = Math.min(1, (now - start) / EXIT_MS)
+        const eased = progress < .5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2
+        window.scrollTo(0, from + (to - from) * eased)
+        glide = progress < 1 ? requestAnimationFrame(frame) : 0
+      }
+      cancelAnimationFrame(glide)
+      glide = requestAnimationFrame(frame)
+    }
+    // One gesture asks for one step; at either end it asks to leave instead.
+    const step = (direction) => {
+      if (busy()) return
+      const next = phaseRef.current + direction
+      if (next < 0 || next > LAST) exit(direction)
+      else goTo(next)
+    }
+
+    const onWheel = (event) => {
+      if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return
+      const delta = normalizeWheelDelta(event, window.innerHeight)
+      const now = performance.now()
+      lastInput = now
+      const result = detector.push(delta, event.timeStamp || now)
+      if (glide) { event.preventDefault(); return }
+      if (engaged) {
+        event.preventDefault()
+        if (result.trigger) step(result.direction)
+        return
+      }
+      // Catch the section on the exact event that would carry the page past it.
+      const top = section.getBoundingClientRect().top
+      const arriving = (delta > 0 && top > 0 && top - delta <= 0) || (delta < 0 && top < 0 && top - delta >= 0)
+      if (arriving && Math.abs(top) < window.innerHeight) {
+        event.preventDefault()
+        detector.spend()
+        engage(delta > 0 ? 1 : -1)
+      }
+    }
+
+    const onTouchStart = (event) => {
+      touch = event.touches.length === 1 ? { y: event.touches[0].clientY, spent: !engaged } : null
+    }
+    const onTouchMove = (event) => {
+      lastInput = performance.now()
+      if (!touch || event.touches.length !== 1) return
+      if (glide && event.cancelable) { event.preventDefault(); return }
+      if (!engaged) { touch.spent = true; return }
+      if (event.cancelable) event.preventDefault()
+      const travelled = touch.y - event.touches[0].clientY
+      if (touch.spent || Math.abs(travelled) < TOUCH_THRESHOLD) return
+      touch.spent = true
+      step(Math.sign(travelled))
+    }
+    const onTouchEnd = () => { lastTouchEnd = performance.now(); touch = null }
+
+    const onKeyDown = (event) => {
+      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || isEditable(event.target)) return
+      // Home and End leave the section: unlock first so the browser can scroll.
+      if (engaged && (event.key === 'Home' || event.key === 'End')) { release(); return }
+      const space = event.key === ' '
+      if (space && event.target instanceof Element && event.target.closest('button, a, summary, [role="button"]')) return
+      const direction = ['ArrowDown', 'PageDown'].includes(event.key) || (space && !event.shiftKey) ? 1
+        : ['ArrowUp', 'PageUp'].includes(event.key) || (space && event.shiftKey) ? -1 : 0
+      if (!direction) return
+      lastInput = performance.now()
+      if (glide) { event.preventDefault(); return }
+      if (!engaged) return
+      event.preventDefault()
+      if (!event.repeat) step(direction)
+    }
+
+    const onScroll = () => {
+      const rect = section.getBoundingClientRect()
+      const top = rect.top
+      const previous = previousTop
+      previousTop = top
+      const now = performance.now()
+      if (engaged) {
+        // Momentum or a smooth keyboard scroll still running when the section locked: hold the line.
+        if (now - engagedAt < ENGAGE_GRACE) { if (Math.abs(top) >= .5) window.scrollTo(0, sectionTop()); return }
+        if (Math.abs(top) < 2) return
+        // Anything else moved the page (scrollbar, Tab, links, find in page): never trap.
+        release()
+        return
+      }
+      // Off screen, prepare the frame the reader will meet when they arrive.
+      if (!busy()) {
+        if (top >= window.innerHeight && phaseRef.current !== 0) goTo(0, { instant: true, user: false })
+        else if (rect.bottom <= 0 && phaseRef.current !== LAST) goTo(LAST, { instant: true, user: false })
+      }
+      const recent = now - lastInput < INPUT_WINDOW || now - lastTouchEnd < MOMENTUM_WINDOW
+      const crossed = previous !== null && ((previous > 0 && top <= 0) || (previous < 0 && top >= 0))
+      if (crossed && recent && Math.abs(top) < window.innerHeight * .9) engage(previous > 0 ? 1 : -1)
+    }
+
+    const onResize = () => { if (engaged) window.scrollTo(0, sectionTop()) }
+    // Content above that changes height (late images, fonts) would nudge the
+    // locked section without any scroll event; put it back in place.
+    const layout = new ResizeObserver(() => {
+      if (engaged && Math.abs(section.getBoundingClientRect().top) >= .5) window.scrollTo(0, sectionTop())
+    })
+    layout.observe(document.body)
+    // Keyboard and assistive-technology users moving focus elsewhere always get the page back.
+    const onFocusIn = (event) => {
+      if (!engaged || section.contains(event.target) || !(event.target instanceof Element)) return
+      release()
+      event.target.scrollIntoView({ block: 'nearest' })
+    }
+
+    window.addEventListener('wheel', onWheel, { passive: false })
+    window.addEventListener('touchstart', onTouchStart, { passive: true })
+    window.addEventListener('touchmove', onTouchMove, { passive: false })
+    window.addEventListener('touchend', onTouchEnd, { passive: true })
+    window.addEventListener('touchcancel', onTouchEnd, { passive: true })
+    window.addEventListener('keydown', onKeyDown)
     window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
+    window.addEventListener('resize', onResize)
+    document.addEventListener('focusin', onFocusIn)
     onScroll()
+
     return () => {
-      cancelAnimationFrame(frame)
+      cancelTransition()
+      cancelAnimationFrame(glide)
+      clearTimeout(realign)
+      release()
+      window.removeEventListener('wheel', onWheel)
+      window.removeEventListener('touchstart', onTouchStart)
+      window.removeEventListener('touchmove', onTouchMove)
+      window.removeEventListener('touchend', onTouchEnd)
+      window.removeEventListener('touchcancel', onTouchEnd)
+      window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
-      video?.removeEventListener('loadedmetadata', onMetadata)
-      video?.removeEventListener('loadeddata', onLoaded)
-      video?.removeEventListener('seeked', schedule)
-      video?.removeEventListener('error', onError)
+      window.removeEventListener('resize', onResize)
+      document.removeEventListener('focusin', onFocusIn)
+      layout.disconnect()
     }
-  }, [staticMode, near, mobile])
+  }, [staticMode])
 
-  if (staticMode) return <section id="construction" aria-labelledby="construction-title" className="relative bg-navy-800 text-cream-200 py-24 md:py-32">
-    <div className="max-w-[1600px] mx-auto px-6 md:px-12 grid md:grid-cols-12 gap-10 md:gap-8 items-center">
-      <div className="md:col-span-5">
-        <div className="section-label text-cream-200/70 mb-6">CONSTRUCCIÓN INDUSTRIALIZADA</div>
-        <h2 id="construction-title" className="font-display text-[clamp(2.4rem,4.6vw,5rem)] leading-[.92] tracking-tightest">VORA —<br/><em className="italic font-light text-gold-200">Concrete Living</em></h2>
-        <ul className="mt-8 space-y-2 section-label text-cream-200/70">
-          {['El futuro de la construcción', 'Precisión industrial', 'Hormigón. Diseño. Solidez.', 'Cada detalle importa'].map(item => <li key={item}>{item}</li>)}
-        </ul>
+  // Video readiness: reveal the film once it can show the current phase.
+  useEffect(() => {
+    const video = videoRef.current
+    if (staticMode || !near || !video) return
+    const onBuffer = () => {
+      if (!bufferRef.current || !video?.duration || !video.buffered.length) return
+      const loaded = video.buffered.end(video.buffered.length - 1) / video.duration
+      bufferRef.current.style.transform = `scaleX(${clamp(loaded, 0, 1).toFixed(3)})`
+    }
+    let primed = false
+    const onReady = () => {
+      if (primed) return
+      primed = true
+      // The film takes over only once it shows the current phase; until then
+      // phase changes keep using the stills, so nothing races the first seek.
+      const reveal = () => {
+        const target = Math.min(frameTime(PHASES[phaseRef.current].time), video.duration - .5 / FPS)
+        if (Math.abs(video.currentTime - target) >= .5 / FPS) video.currentTime = target
+        readyRef.current = true
+        setVideoVisible(true)
+      }
+      const seekToPhase = () => {
+        const target = Math.min(frameTime(PHASES[phaseRef.current].time), video.duration - .5 / FPS)
+        if (Math.abs(video.currentTime - target) < .5 / FPS) return reveal()
+        video.addEventListener('seeked', reveal, { once: true })
+        video.currentTime = target
+      }
+      // iOS Safari only paints seeks once the element has played.
+      Promise.resolve(video.play()).then(() => { video.pause(); seekToPhase() }).catch(seekToPhase)
+    }
+    // A film the browser cannot play leaves the phases to the still frames.
+    const onError = () => {
+      readyRef.current = false
+      controlsRef.current.cancel?.()
+      setSeen(previous => new Set(previous).add(phaseRef.current))
+      setVideoVisible(false)
+      setFailed(true)
+    }
+    video.addEventListener('loadeddata', onReady)
+    video.addEventListener('progress', onBuffer)
+    video.addEventListener('error', onError)
+    if (video.readyState >= 2) onReady()
+    return () => {
+      video.removeEventListener('loadeddata', onReady)
+      video.removeEventListener('progress', onBuffer)
+      video.removeEventListener('error', onError)
+    }
+  }, [staticMode, near])
+
+  const goTo = (index) => controlsRef.current.goTo(index)
+  const current = PHASES[phase]
+  const hintHidden = interactions >= 2
+  const loading = near && !videoVisible && !staticMode && !failed
+
+  return <section id="construction" ref={sectionRef} aria-labelledby="construction-title" className="construction-stage" data-moving="false">
+    <h2 id="construction-title" className="sr-only">Construcción de una vivienda VORA en siete fases</h2>
+    {PHASES.map((item, index) => seen.has(index) && <img key={index} src={still(index)} alt="" width="1600" height="900" loading="lazy" decoding="async" className="construction-media construction-still" style={{ opacity: index === phase ? 1 : 0 }}/>)}
+    {near && !staticMode && !failed && <video ref={videoRef} src={VIDEO_SRC} muted playsInline preload="auto" disablePictureInPicture disableRemotePlayback tabIndex={-1} aria-hidden="true" className="construction-media construction-video" style={{ opacity: videoVisible ? 1 : 0 }}/>}
+    <div className="construction-shade" aria-hidden="true"/>
+
+    <div className="construction-hud">
+      {loading && <div className="hud-buffer" aria-hidden="true"><div ref={bufferRef} className="hud-buffer-bar"/></div>}
+      <div className="hud-meta">
+        <span>VORA — Concrete Living</span>
+        <span aria-hidden="true"><span className="hud-count-current">{pad(phase + 1)}</span> / {pad(PHASES.length)}</span>
       </div>
-      <figure className="construction-frame md:col-span-7 md:justify-self-end">
-        <img src="/media/construction/construction-end.jpg" alt="Vivienda VORA de hormigón terminada, con piscina y vistas al mar" width="1280" height="960" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover"/>
-      </figure>
+      <div className="hud-titles" aria-hidden="true">
+        {PHASES.map((item, index) => <span key={item.title} className="hud-title" data-active={index === phase}>{item.title}</span>)}
+      </div>
+      <ol className="hud-segments" aria-label="Fases de la construcción">
+        {PHASES.map((item, index) => <li key={item.title} className="flex-1">
+          <button type="button" className="hud-segment" onClick={() => goTo(index)} data-state={index < phase ? 'done' : index === phase ? 'active' : 'pending'} aria-label={`Fase ${index + 1} de ${PHASES.length}: ${item.title}`} aria-current={index === phase ? 'step' : undefined}/>
+        </li>)}
+      </ol>
+      <div className="hud-foot">
+        <span className="hud-hint" data-hidden={hintHidden} aria-hidden={hintHidden}>
+          {staticMode ? <span>Usa los controles para recorrer la construcción</span> : <>
+            {coarsePointer ? <SwipeIcon/> : <MouseIcon/>}
+            <span>{coarsePointer ? 'Desliza para descubrir la construcción' : 'Desplázate para descubrir la construcción'}</span>
+          </>}
+        </span>
+        <span className="hud-steps">
+          <button type="button" className="hud-step" onClick={() => goTo(phase - 1)} disabled={phase === 0} aria-label="Fase anterior"><ChevronUp size={14} strokeWidth={1.6}/></button>
+          <button type="button" className="hud-step" onClick={() => goTo(phase + 1)} disabled={phase === LAST} aria-label="Fase siguiente"><ChevronDown size={14} strokeWidth={1.6}/></button>
+        </span>
+      </div>
+      <p className="sr-only" aria-live="polite">{`Fase ${phase + 1} de ${PHASES.length}: ${current.title}. ${current.state}`}</p>
     </div>
   </section>
+}
 
-  const src = mobile ? '/media/construction/construction-mobile.mp4' : '/media/construction/construction-desktop.mp4'
-  return <section id="construction" ref={sectionRef} aria-labelledby="construction-title" className="construction-scroll relative h-[350vh] bg-navy-800 text-cream-200">
-    <div className="sticky top-0 h-screen h-[100svh] overflow-hidden flex flex-col px-6 md:px-12 pt-24 md:pt-28 pb-7 md:pb-10">
-      <div className="w-full max-w-[1600px] mx-auto flex justify-between section-label text-cream-200/70">
-        <span>CONSTRUCCIÓN INDUSTRIALIZADA</span>
-        <span className="hidden md:inline">DESLIZA PARA CONSTRUIR</span>
-      </div>
+function MouseIcon() {
+  return <svg className="hud-icon" width="12" height="18" viewBox="0 0 12 18" fill="none" aria-hidden="true"><rect x=".75" y=".75" width="10.5" height="16.5" rx="5.25" stroke="currentColor" strokeWidth="1"/><rect className="hud-icon-wheel" x="5.25" y="4" width="1.5" height="3.5" rx=".75" fill="currentColor"/></svg>
+}
 
-      <h2 id="construction-title" className="sr-only">VORA — Concrete Living: así se construye una vivienda industrializada de hormigón</h2>
-      <div className="flex-1 min-h-0 w-full max-w-[1600px] mx-auto flex flex-col justify-center gap-8 md:grid md:grid-cols-12 md:items-center md:gap-8 py-6">
-        <div className="construction-frame md:col-span-7 md:col-start-6 md:row-start-1 md:justify-self-end">
-          <img src="/media/construction/construction-start.jpg" alt="" width="1280" height="960" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover"/>
-          {near && <video key={src} ref={videoRef} src={src} muted playsInline preload="auto" disablePictureInPicture disableRemotePlayback tabIndex={-1} aria-hidden="true" className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-out ${ready ? 'opacity-100' : 'opacity-0'}`}/>}
-        </div>
-        <div className="relative min-h-[7.5rem] md:min-h-[11rem] md:col-span-5 md:row-start-1">
-          {CAPTIONS.map((caption, index) => <div key={caption.kicker} ref={node => { captionRefs.current[index] = node }} aria-hidden="true" className="construction-caption absolute left-0 top-0 md:top-1/2 md:-mt-[5.5rem]" style={{ opacity: index === 0 ? 1 : 0, visibility: index === 0 ? 'visible' : 'hidden' }}>
-            <div className="section-label text-gold-200/90 mb-4">{caption.kicker}</div>
-            <p className="font-display text-[clamp(2.1rem,4.4vw,4.75rem)] leading-[.94] tracking-tightest">{caption.text}</p>
-          </div>)}
-        </div>
-      </div>
-
-      <div className="w-full max-w-[1600px] mx-auto flex items-center gap-5 section-label text-cream-200/70">
-        <span aria-hidden="true"><span ref={counterRef}>000</span> %</span>
-        <div className="relative flex-1 h-px bg-cream-200/20 overflow-hidden"><div ref={barRef} className="absolute inset-0 bg-cream-200 origin-left" style={{ transform: 'scaleX(0)' }}/></div>
-        <span>VORA · CONCRETE LIVING</span>
-      </div>
-    </div>
-  </section>
+function SwipeIcon() {
+  return <svg className="hud-icon" width="12" height="18" viewBox="0 0 12 18" fill="none" aria-hidden="true"><path d="M6 16.5V2.5M2.5 6 6 2.5 9.5 6" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/></svg>
 }
