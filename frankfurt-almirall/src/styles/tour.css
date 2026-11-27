@@ -1,6 +1,7 @@
 /* ─────────────────────────────────────────────
-   The whole page is the bar: one sticky stage,
-   scroll distance = journey length (tour.config.js)
+   The tour: a large vintage picture frame hung on an old
+   cream wall. The frame stays put; scrolling walks the bar.
+   Geometry (--ox/--oy/--ow/--oh, moulding sizes) comes from layoutFrame().
    ───────────────────────────────────────────── */
 .tour {
   position: relative;
@@ -9,42 +10,168 @@
 }
 
 .stage {
+  --wall: #ece0c7;
+  --wood-0: #140b06;
+  --wood-1: #26160c;
+  --wood-2: #3b2414;
+  --wood-3: #5b3a21;
   position: sticky;
   top: 0;
   height: 100vh;
   height: 100svh;
   overflow: hidden;
-  background: var(--ink);
   isolation: isolate;
+  background-color: var(--wall);
+  /* old plaster: fine grain + soft mottling + warm light from above */
+  background-image:
+    radial-gradient(120% 80% at 50% -10%, rgb(255 248 232 / 0.75), transparent 60%),
+    radial-gradient(90% 70% at 50% 120%, rgb(120 90 50 / 0.16), transparent 70%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><filter id='m'><feTurbulence type='fractalNoise' baseFrequency='.006' numOctaves='3' seed='4'/><feColorMatrix values='0 0 0 0 .45 0 0 0 0 .36 0 0 0 0 .24 0 0 0 .14 0'/></filter><rect width='100%' height='100%' filter='url(%23m)'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .3 0 0 0 0 .24 0 0 0 0 .16 0 0 0 .5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }
 
+/* ───────── Frame ───────── */
+.frame {
+  position: absolute;
+  left: calc(var(--ox) - var(--chrome));
+  top: calc(var(--oy) - var(--chrome));
+  width: calc(var(--ow) + 2 * var(--chrome));
+  height: calc(var(--oh) + 2 * var(--chrome));
+  /* natural cast shadow on the wall, light from above */
+  filter: drop-shadow(0 22px 26px rgb(58 36 16 / 0.38)) drop-shadow(0 4px 6px rgb(58 36 16 / 0.35));
+}
+
+/* Four mitred moulding pieces with grain running along each piece */
+.frame__side {
+  position: absolute;
+  background-color: var(--wood-2);
+}
+.frame__side--top,
+.frame__side--bottom {
+  left: 0;
+  right: 0;
+  height: var(--mould);
+  background-image:
+    var(--profile),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='60'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.0035 .22' numOctaves='4' seed='7'/><feColorMatrix values='0 0 0 0 .1 0 0 0 0 .05 0 0 0 0 .02 0 0 0 .9 -.12'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
+}
+.frame__side--left,
+.frame__side--right {
+  top: 0;
+  bottom: 0;
+  width: var(--mould);
+  background-image:
+    var(--profile),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='900'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.22 .0035' numOctaves='4' seed='3'/><feColorMatrix values='0 0 0 0 .1 0 0 0 0 .05 0 0 0 0 .02 0 0 0 .9 -.12'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
+}
+/* moulding profile: worn outer bead, flat, deep cove towards the picture */
+.frame__side--top {
+  top: 0;
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--mould)) 100%, var(--mould) 100%);
+  --profile: linear-gradient(to bottom, #6e4a2c 0, #4a2e1a 9%, #2a180c 16%, #3e2615 30%, #4f321c 55%, #2c190c 78%, #140b05 100%);
+}
+.frame__side--bottom {
+  bottom: 0;
+  clip-path: polygon(var(--mould) 0, calc(100% - var(--mould)) 0, 100% 100%, 0 100%);
+  --profile: linear-gradient(to top, #3a2414 0, #26170c 9%, #160c06 16%, #22140a 30%, #2b190d 55%, #180d06 78%, #0b0603 100%);
+}
+.frame__side--left {
+  left: 0;
+  clip-path: polygon(0 0, 100% var(--mould), 100% calc(100% - var(--mould)), 0 100%);
+  --profile: linear-gradient(to right, #5e3e24 0, #3f2716 9%, #24150a 16%, #352012 30%, #432a17 55%, #24150a 78%, #110904 100%);
+}
+.frame__side--right {
+  right: 0;
+  clip-path: polygon(0 var(--mould), 100% 0, 100% 100%, 0 calc(100% - var(--mould)));
+  --profile: linear-gradient(to left, #3c2515 0, #2a190d 9%, #180d06 16%, #24150a 30%, #2e1b0e 55%, #190e06 78%, #0c0603 100%);
+}
+
+/* dark inner cove, then the antique brass fillet */
+.frame__cove,
+.frame__brass {
+  position: absolute;
+  pointer-events: none;
+}
+.frame__cove {
+  inset: var(--mould);
+  background: #0d0703;
+  box-shadow:
+    inset 0 1px 0 rgb(0 0 0 / 0.7),
+    inset 0 -1px 0 rgb(120 80 45 / 0.25);
+}
+.frame__brass {
+  inset: calc(var(--mould) + var(--cove));
+  background: linear-gradient(135deg, #6c4d22 0%, #d9b46a 18%, #8d6a32 34%, #e9cd8a 52%, #9a7638 70%, #c7a05a 86%, #5e421c 100%);
+  box-shadow: inset 0 0 0 0.5px rgb(40 25 8 / 0.6);
+}
+
+.frame__corner {
+  position: absolute;
+  width: calc(var(--mould) * 0.82);
+  height: calc(var(--mould) * 0.82);
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.55));
+}
+.frame__corner--tl {
+  left: calc(var(--mould) * 0.09);
+  top: calc(var(--mould) * 0.09);
+}
+.frame__corner--tr {
+  right: calc(var(--mould) * 0.09);
+  top: calc(var(--mould) * 0.09);
+}
+.frame__corner--bl {
+  left: calc(var(--mould) * 0.09);
+  bottom: calc(var(--mould) * 0.09);
+}
+.frame__corner--br {
+  right: calc(var(--mould) * 0.09);
+  bottom: calc(var(--mould) * 0.09);
+}
+
+/* ───────── The picture ───────── */
+.opening {
+  position: absolute;
+  left: var(--ox);
+  top: var(--oy);
+  width: var(--ow);
+  height: var(--oh);
+  container-type: size;
+  container-name: picture;
+}
 .stage__poster,
 .stage__canvas {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+  background: #2a2018;
 }
 .stage__poster {
   object-fit: cover;
-  object-position: 50% 50%;
   transition: opacity 0.6s var(--ease);
 }
 .tour[data-ready='true'] .stage__poster {
   opacity: 0;
 }
-
-/* Soft shade only where the intro and the finale sit */
+/* the picture sits slightly recessed behind the brass: a thin edge shadow, not a vignette */
+.opening__depth {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 1px rgb(30 18 6 / 0.55),
+    inset 0 3px 5px -2px rgb(0 0 0 / 0.55),
+    inset 3px 0 5px -3px rgb(0 0 0 / 0.35);
+}
+/* soft shade behind the opening and closing copy only */
 .scrim {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    linear-gradient(to top, rgb(14 11 8 / 0.78) 0%, rgb(14 11 8 / 0.35) 30%, transparent 52%),
-    linear-gradient(to right, rgb(14 11 8 / 0.5) 0%, transparent 46%);
+  background: linear-gradient(to top right, rgb(14 11 8 / 0.62) 0%, rgb(14 11 8 / 0.28) 34%, transparent 58%);
 }
 
-/* ───────── Text cues ───────── */
+/* ───────── Copy ───────── */
 .intro,
 .cue,
 .finale {
@@ -52,7 +179,7 @@
   position: absolute;
   z-index: 2;
   opacity: var(--o);
-  transform: translate3d(0, calc((1 - var(--o)) * 20px), 0);
+  transform: translate3d(0, calc((1 - var(--o)) * 18px), 0);
   visibility: hidden;
   will-change: opacity, transform;
 }
@@ -60,7 +187,6 @@
   --o: 1;
   visibility: visible;
 }
-
 .intro > *,
 .cue > *,
 .finale > * {
@@ -69,129 +195,142 @@
 .cue__title,
 .intro__title,
 .finale__title {
-  --d: 0.18;
+  --d: 0.14;
 }
 .cue__line,
 .intro__line,
 .finale__name {
-  --d: 0.32;
+  --d: 0.26;
 }
 .finale__address,
 .intro__hint {
-  --d: 0.42;
+  --d: 0.36;
 }
 .finale__ctas {
-  --d: 0.5;
+  --d: 0.44;
 }
 
-.cue__kicker {
+/* Stops: product name first, then the line */
+.cue {
+  max-width: var(--cue-w, 46cqw);
+}
+.cue[data-place='top-left'] {
+  left: 7cqw;
+  top: 8cqh;
+}
+.cue[data-place='top-right'] {
+  right: 7cqw;
+  top: 8cqh;
+  text-align: right;
+}
+.cue[data-place='bottom-left'] {
+  left: 7cqw;
+  bottom: 10cqh;
+}
+.cue[data-place='bottom-right'] {
+  right: 7cqw;
+  bottom: 10cqh;
+  text-align: right;
+}
+.cue__name {
   font-family: var(--display);
-  font-weight: 600;
-  font-size: clamp(0.78rem, 0.35vw + 0.65rem, 0.95rem);
-  letter-spacing: 0.24em;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 0.7em;
+  font-size: clamp(1.7rem, 4.6cqw, 5.4rem);
+  line-height: 0.92;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
 }
 .cue__title {
+  margin-top: 0.28em;
   font-family: var(--serif);
   font-style: italic;
   font-weight: 400;
-  font-size: clamp(2.2rem, 3.9vw, 4.6rem);
-  line-height: 1.02;
+  font-size: clamp(1.5rem, 3.9cqw, 4.6rem);
+  line-height: 1.04;
   letter-spacing: -0.02em;
   text-wrap: balance;
 }
 .cue__line {
   margin-top: 0.7em;
   font-family: var(--display);
-  font-weight: 500;
-  font-size: clamp(1rem, 0.6vw + 0.8rem, 1.3rem);
-  letter-spacing: 0.14em;
+  font-weight: 600;
+  font-size: clamp(0.95rem, 1.55cqw, 1.6rem);
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
-.cue {
-  max-width: min(30ch, 40vw);
-}
-.cue[data-place='top-left'] {
-  top: calc(var(--hdr) + 6vh);
-  left: var(--gutter);
-}
-.cue[data-place='top-right'] {
-  top: calc(var(--hdr) + 6vh);
-  right: var(--gutter);
-  text-align: right;
-}
-.cue[data-place='bottom-left'] {
-  bottom: 12vh;
-  left: var(--gutter);
-}
-.cue[data-place='bottom-right'] {
-  bottom: 12vh;
-  right: var(--gutter);
-  text-align: right;
-}
-
-/* Tone: light text with a soft dark halo, or dark text on bright tiles */
+/* contrast: a soft local shade (light text) or a soft cream glow (dark text) */
 .cue::before {
   content: '';
   position: absolute;
-  inset: -45% -35%;
+  inset: -40% -28%;
   z-index: -1;
   pointer-events: none;
 }
 .cue[data-tone='light'] {
-  color: var(--cream);
+  color: #fbf1df;
   text-shadow:
-    0 1px 2px rgb(0 0 0 / 0.35),
-    0 2px 26px rgb(0 0 0 / 0.45);
+    0 1px 2px rgb(0 0 0 / 0.55),
+    0 2px 18px rgb(0 0 0 / 0.55);
 }
 .cue[data-tone='light']::before {
-  background: radial-gradient(closest-side, rgb(14 11 8 / 0.42), transparent);
+  background: radial-gradient(closest-side, rgb(14 10 6 / 0.62), rgb(14 10 6 / 0.3) 55%, transparent);
+}
+.cue[data-tone='light'] .cue__name {
+  color: var(--gold);
 }
 .cue[data-tone='dark'] {
-  color: var(--charcoal);
-  text-shadow: 0 0 22px rgb(250 240 222 / 0.85);
+  color: #1c1612;
+  text-shadow: 0 0 14px rgb(252 244 228 / 0.95), 0 0 2px rgb(252 244 228 / 0.9);
 }
 .cue[data-tone='dark']::before {
-  background: radial-gradient(closest-side, rgb(250 240 222 / 0.55), transparent);
+  background: radial-gradient(closest-side, rgb(250 242 226 / 0.82), rgb(250 242 226 / 0.45) 55%, transparent);
 }
-.cue[data-tone='dark'] .cue__kicker {
+.cue[data-tone='dark'] .cue__name {
   color: var(--burgundy);
 }
 
 /* Intro */
 .intro {
-  left: var(--gutter);
-  bottom: clamp(56px, 10vh, 110px);
-  max-width: min(760px, 70vw);
-  text-shadow: 0 2px 28px rgb(0 0 0 / 0.35);
+  left: 6cqw;
+  bottom: 9cqh;
+  max-width: 62cqw;
+  color: var(--cream);
+  text-shadow: 0 2px 24px rgb(0 0 0 / 0.4);
+}
+.intro__kicker {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(0.8rem, 1.2cqw, 1.1rem);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.6em;
 }
 .intro__title {
   font-family: var(--display);
   font-weight: 700;
   text-transform: uppercase;
-  font-size: clamp(3.4rem, 8.4vw, 9rem);
+  font-size: clamp(2.8rem, 8.4cqw, 9rem);
   line-height: 0.86;
-  letter-spacing: 0.005em;
 }
 .intro__title span {
   display: block;
   color: var(--gold);
 }
 .intro__line {
-  margin-top: 0.5em;
+  margin-top: 0.4em;
   font-style: italic;
-  font-size: clamp(1.25rem, 1.6vw + 0.6rem, 2.1rem);
+  font-size: clamp(1.15rem, 2.4cqw, 2.4rem);
 }
 .intro__hint {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 1.6em;
+  margin-top: 1.4em;
   font-family: var(--display);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--cream-soft);
@@ -199,7 +338,7 @@
 .intro__hint-line {
   position: relative;
   width: 1px;
-  height: 38px;
+  height: 34px;
   overflow: hidden;
   background: rgb(244 232 212 / 0.3);
 }
@@ -220,26 +359,27 @@
 
 /* Finale */
 .finale {
-  left: var(--gutter);
-  bottom: clamp(64px, 11vh, 120px);
-  max-width: min(520px, 42vw);
-  text-shadow: 0 2px 24px rgb(0 0 0 / 0.4);
+  left: 6cqw;
+  bottom: 9cqh;
+  max-width: 44cqw;
+  color: var(--cream);
+  text-shadow: 0 2px 22px rgb(0 0 0 / 0.45);
 }
 .finale__title {
   font-family: var(--serif);
   font-style: italic;
   font-weight: 400;
-  font-size: clamp(2.6rem, 4.6vw, 5.4rem);
+  font-size: clamp(2.2rem, 5.6cqw, 6rem);
   line-height: 1;
   letter-spacing: -0.025em;
 }
 .finale__name {
-  margin-top: 0.7em;
+  margin-top: 0.6em;
   font-family: var(--display);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  font-size: clamp(1.05rem, 0.8vw + 0.7rem, 1.4rem);
+  font-size: clamp(1rem, 1.6cqw, 1.5rem);
   color: var(--gold);
 }
 .finale__address {
@@ -250,17 +390,17 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 1.4em;
+  margin-top: 1.3em;
   text-shadow: none;
 }
 
-/* ───────── Progress: a hairline along the bar ───────── */
+/* ───────── Progress: a hairline under the frame ───────── */
 .progress {
   position: absolute;
   z-index: 3;
-  left: var(--gutter);
-  right: var(--gutter);
-  bottom: calc(22px + env(safe-area-inset-bottom));
+  left: var(--ox);
+  width: var(--ow);
+  bottom: calc(14px + env(safe-area-inset-bottom));
   height: 14px;
 }
 .progress__track {
@@ -269,12 +409,12 @@
   right: 0;
   top: 6px;
   height: 1px;
-  background: rgb(244 232 212 / 0.22);
+  background: rgb(37 35 33 / 0.2);
 }
 .progress__fill {
   position: absolute;
   inset: 0;
-  background: var(--cream);
+  background: var(--burgundy);
   transform-origin: left;
   transform: scaleX(0);
 }
@@ -297,14 +437,14 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: rgb(244 232 212 / 0.4);
+  background: rgb(37 35 33 / 0.35);
   transition:
     background-color 0.4s,
     transform 0.4s var(--ease);
 }
 .progress__tick[data-on]::before {
-  background: var(--gold);
-  transform: scale(1.3);
+  background: var(--burgundy);
+  transform: scale(1.35);
 }
 .progress__label {
   position: absolute;
@@ -316,13 +456,12 @@
   font-size: 0.72rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--cream);
+  color: var(--charcoal);
   opacity: 0;
   transition:
     opacity 0.25s,
     transform 0.3s var(--ease);
   pointer-events: none;
-  text-shadow: 0 1px 8px rgb(0 0 0 / 0.6);
 }
 .progress__tick:hover .progress__label,
 .progress__tick:focus-visible .progress__label {
@@ -330,88 +469,132 @@
   transform: translate(-50%, 0);
 }
 
-/* ───────── Portrait screens: text in the space below the picture ───────── */
-@media (max-aspect-ratio: 1/1) {
-  .scrim {
-    background: linear-gradient(to top, rgb(14 11 8 / 0.55), transparent 40%);
-  }
-  .tour[data-band='true'] .cue,
-  .tour[data-band='true'] .intro,
-  .tour[data-band='true'] .finale {
-    top: calc(var(--band-bottom) + 6px);
-    bottom: auto;
-    left: var(--gutter);
-    right: var(--gutter);
-    max-width: none;
-    text-align: left;
-  }
-  .tour[data-band='true'] .cue[data-tone] {
-    color: var(--cream);
-    text-shadow: 0 1px 16px rgb(0 0 0 / 0.5);
-  }
-  .tour[data-band='true'] .cue::before {
-    display: none;
-  }
-  .tour[data-band='true'] .cue[data-tone='dark'] .cue__kicker {
-    color: var(--gold);
-  }
-  .cue__title {
-    font-size: clamp(1.9rem, 8.4vw, 3rem);
-  }
-  .intro__title {
-    font-size: clamp(2.8rem, 13.5vw, 5rem);
-  }
-  .intro__line {
-    font-size: 1.15rem;
-  }
-  .intro__hint {
-    display: none;
-  }
-  .finale__title {
-    font-size: clamp(2rem, 9vw, 3.2rem);
-  }
-  .finale__name {
-    margin-top: 0.45em;
-  }
-  .finale__ctas {
-    flex-wrap: nowrap;
-    margin-top: 1em;
-  }
-  .finale__ctas .btn {
-    flex: 1 1 0;
-    min-width: 0;
-    padding: 0 10px;
-    font-size: 0.9rem;
-    letter-spacing: 0.1em;
-    white-space: nowrap;
-  }
-  .progress {
-    bottom: calc(10px + env(safe-area-inset-bottom));
-  }
+/* ───────── Portrait: square picture, copy on the wall below ───────── */
+.stage[data-layout='portrait'] .scrim {
+  display: none;
+}
+.stage[data-layout='portrait'] .intro,
+.stage[data-layout='portrait'] .cue,
+.stage[data-layout='portrait'] .finale {
+  top: calc(100% + var(--chrome) + 22px);
+  bottom: auto;
+  left: 2px;
+  right: 2px;
+  max-width: none;
+  text-align: left;
+  color: var(--charcoal);
+  text-shadow: none;
+}
+.stage[data-layout='portrait'] .cue::before {
+  display: none;
+}
+.stage[data-layout='portrait'] .cue__name {
+  font-size: clamp(2.1rem, 9.6vw, 3.4rem);
+  color: var(--burgundy);
+}
+.stage[data-layout='portrait'] .cue__title {
+  font-size: clamp(1.7rem, 7.6vw, 2.8rem);
+}
+.stage[data-layout='portrait'] .cue__line {
+  font-size: 0.95rem;
+  color: #5a4632;
+}
+.stage[data-layout='portrait'] .intro__kicker {
+  color: var(--burgundy);
+}
+.stage[data-layout='portrait'] .intro__title {
+  font-size: clamp(2.6rem, 13vw, 4.6rem);
+}
+.stage[data-layout='portrait'] .intro__title span {
+  color: var(--burgundy);
+}
+.stage[data-layout='portrait'] .intro__line {
+  font-size: 1.2rem;
+}
+.stage[data-layout='portrait'] .intro__hint {
+  color: #6b5a48;
+}
+.stage[data-layout='portrait'] .intro__hint-line {
+  background: rgb(37 35 33 / 0.2);
+}
+.stage[data-layout='portrait'] .intro__hint-line::after {
+  background: var(--charcoal);
+}
+.stage[data-layout='portrait'] .finale__title {
+  font-size: clamp(2.1rem, 9.4vw, 3.2rem);
+}
+.stage[data-layout='portrait'] .finale__name {
+  color: var(--burgundy);
+}
+.stage[data-layout='portrait'] .finale__address {
+  color: #5a4632;
+}
+.stage[data-layout='portrait'] .finale__ctas {
+  flex-wrap: nowrap;
+}
+.stage[data-layout='portrait'] .finale__ctas .btn {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 10px;
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+.stage[data-layout='portrait'] .btn--solid {
+  background: var(--charcoal);
+  border-color: var(--charcoal);
+  color: var(--cream);
+}
+.stage[data-layout='portrait'] .btn--line {
+  border-color: var(--charcoal);
+  color: var(--charcoal);
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.stage[data-layout='portrait'] .progress {
+  left: 12px;
+  width: auto;
+  right: 12px;
 }
 
-@media (max-width: 760px) and (min-aspect-ratio: 1/1) {
-  .cue {
-    max-width: 46vw;
-  }
-}
-
-/* ───────── Reduced motion: calm still frames ───────── */
+/* ───────── Reduced motion: framed still frames on the wall ───────── */
 .stills {
-  padding-top: var(--hdr);
+  padding: var(--hdr) clamp(12px, 3vw, 40px) 0;
+  background: #ece0c7;
+  color: var(--charcoal);
 }
 .still {
-  margin: 0;
+  margin: 0 auto;
+  max-width: 1400px;
+}
+.still picture {
+  display: block;
+  padding: clamp(12px, 2vw, 28px);
+  background: linear-gradient(135deg, #4a2e1a, #22140a 40%, #3a2414 70%, #160c06);
+  box-shadow:
+    inset 0 0 0 clamp(9px, 1.6vw, 22px) #2b190d,
+    inset 0 0 0 calc(clamp(9px, 1.6vw, 22px) + 3px) #c59a4e,
+    0 22px 30px -10px rgb(58 36 16 / 0.45);
 }
 .still img {
   width: 100%;
   height: auto;
-  max-height: 88vh;
-  object-fit: cover;
 }
 .still figcaption {
-  padding: clamp(24px, 4vw, 48px) var(--gutter) clamp(48px, 8vw, 96px);
+  padding: clamp(20px, 3vw, 36px) 4px clamp(48px, 7vw, 90px);
   max-width: 900px;
+}
+.stills .cue__name,
+.stills .intro__title {
+  color: var(--burgundy);
+  font-size: clamp(2.2rem, 5vw, 4.4rem);
+}
+.stills .intro__title span {
+  color: var(--charcoal);
+}
+.stills .cue__title {
+  font-size: clamp(1.6rem, 3.4vw, 3rem);
 }
 .stills .finale {
   position: static;
@@ -419,8 +602,26 @@
   opacity: 1;
   transform: none;
   max-width: none;
-  padding: clamp(32px, 6vw, 72px) var(--gutter) clamp(64px, 10vw, 120px);
+  color: var(--charcoal);
+  text-shadow: none;
+  padding: 0 4px clamp(64px, 10vw, 120px);
 }
 .stills .finale > * {
   opacity: 1;
+}
+.stills .finale__name {
+  color: var(--burgundy);
+}
+.stills .finale__address {
+  color: #5a4632;
+}
+.stills .btn--solid {
+  background: var(--charcoal);
+  border-color: var(--charcoal);
+  color: var(--cream);
+}
+.stills .btn--line {
+  border-color: var(--charcoal);
+  color: var(--charcoal);
+  background: transparent;
 }

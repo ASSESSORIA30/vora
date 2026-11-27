@@ -44,36 +44,33 @@ export const tour = {
   dwellWidth: 0.95,
 
   /**
-   * Proporció mínima del vídeo que ha de quedar visible en cada eix.
-   * En pantalles molt panoràmiques o verticals, el vídeo no es retalla més d'això:
-   * l'espai sobrant s'omple amb una extensió difuminada del mateix fotograma.
+   * Marc: l'obertura ocupa la màxima superfície de la pantalla i no retalla mai el vídeo
+   * més d'un 25 % per eix. En pantalles verticals és quadrada i el text va a sota, sobre la paret.
    */
-  minVisible: 0.75,
-
-  /** En pantalles verticals, posició vertical del vídeo (0 = a dalt, 1 = a baix). El text va a sota. */
-  bandAnchor: 0.36,
 
   /** Inici (segons) i punt d'atenció (x, y normalitzats sobre el vídeo). */
   intro: { until: 1.4, focus: [0.5, 0.5], place: 'bottom-left', tone: 'light' },
 
   /**
    * Parades. `time`: moment (s) on el producte es veu millor. `focus`: centre del producte
-   * (0–1) perquè l'enquadrament responsive no el retalli. `place`: on va el text a
-   * l'escriptori (top-left | top-right | bottom-left | bottom-right). `tone`: color del text
-   * segons el fons (light = text crema, dark = text fosc). `dwell`: quant s'alenteix l'scroll.
+   * (0–1) perquè l'enquadrament responsive no el retalli. `place`: on va el text dins del
+   * quadre a l'ordinador (top-left | top-right | bottom-left | bottom-right; alterneu-lo segons
+   * on quedi lliure la imatge). `tone`: light = text crema, dark = text fosc. `dwell`: quant
+   * s'alenteix l'scroll. `before`/`after` (opcional, s): quant abans i després es veu el text.
+   * `width` (opcional, 0–1): amplada màxima del text dins del quadre, per no tocar el producte.
    */
   stops: [
-    { id: 'truita', time: 6.25, focus: [0.42, 0.56], place: 'top-left', tone: 'light', dwell: 0.9 },
+    { id: 'truita', time: 6.25, focus: [0.42, 0.56], place: 'top-left', tone: 'light', dwell: 0.9, width: 0.33 },
     { id: 'pernil', time: 9.45, focus: [0.55, 0.52], place: 'top-right', tone: 'dark', dwell: 0.9 },
     { id: 'frankfurt', time: 13.2, focus: [0.53, 0.55], place: 'top-left', tone: 'light', dwell: 0.9 },
-    { id: 'burger', time: 16.0, focus: [0.55, 0.5], place: 'top-right', tone: 'dark', dwell: 0.8 },
+    { id: 'burger', time: 16.0, focus: [0.55, 0.5], place: 'top-right', tone: 'dark', dwell: 0.8, before: 1.2, after: 0.9 },
   ],
 
   /** Final: apareix sobre l'últim tram, sense sortir de l'escena. */
-  finale: { from: 16.7, focus: [0.55, 0.45], hold: 1.6 },
+  finale: { from: 16.85, focus: [0.55, 0.45], hold: 1.6 },
 
   /** Durada (s del vídeo) de l'entrada i sortida de cada text al voltant de la seva parada. */
-  textWindow: { before: 1.1, after: 0.9 },
+  textWindow: { before: 1.6, after: 1.5 },
 
   copy: {
     ca: {

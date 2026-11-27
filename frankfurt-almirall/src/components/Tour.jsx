@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -32,23 +32,96 @@ function supportsAvif() {
 function pickVariant(avif) {
   const lg = manifest.variants.lg;
   if (!lg || (lg.format === 'avif' && !avif)) return 'sm';
-  // Width (in device pixels) the video will actually be drawn at, as in tourPlayer's layout.
+  // The opening of the frame is at most the screen width; the video covers it.
   const { innerWidth: w, innerHeight: h } = window;
-  const cover = Math.max(w / lg.width, h / lg.height);
-  const contain = Math.min(w / lg.width, h / lg.height);
-  const drawn = lg.width * Math.min(cover, contain / tour.minVisible);
+  const opening = Math.min(w * 0.96, h * 1.78);
+  const drawn = Math.max(opening, (opening / Math.min(1.78, Math.max(1, w / h))) * manifest.aspect);
   const need = drawn * Math.min(window.devicePixelRatio || 1, 2);
   return need >= tour.output.largeFrom ? 'lg' : 'sm';
 }
 
 function StopText({ stop, text }) {
   return (
-    <section className="cue" data-place={stop.place} data-tone={stop.tone} data-cue={stop.id} aria-hidden="true">
-      <p className="cue__kicker">{text.kicker}</p>
-      <h2 className="cue__title">{text.title}</h2>
+    <section
+      className="cue"
+      data-place={stop.place}
+      data-tone={stop.tone}
+      data-cue={stop.id}
+      aria-hidden="true"
+      style={stop.width ? { '--cue-w': `${stop.width * 100}cqw` } : undefined}
+    >
+      <h2 className="cue__name">{text.kicker}</h2>
+      <p className="cue__title">{text.title}</p>
       {text.line ? <p className="cue__line">{text.line}</p> : null}
     </section>
   );
+}
+
+/** Small brass rosette for the frame corners. */
+function Corner({ pos }) {
+  return (
+    <svg className={`frame__corner frame__corner--${pos}`} viewBox="0 0 40 40" aria-hidden="true">
+      <defs>
+        <radialGradient id={`brass-${pos}`} cx="38%" cy="32%" r="75%">
+          <stop offset="0" stopColor="#f6dc9c" />
+          <stop offset=".45" stopColor="#c59a4e" />
+          <stop offset="1" stopColor="#6b4a1f" />
+        </radialGradient>
+      </defs>
+      <g fill={`url(#brass-${pos})`} stroke="#3a2610" strokeWidth=".8">
+        <path d="M20 3c3.2 4.6 3.2 8.6 0 12-3.2-3.4-3.2-7.4 0-12zM20 37c3.2-4.6 3.2-8.6 0-12-3.2 3.4-3.2 7.4 0 12zM3 20c4.6-3.2 8.6-3.2 12 0-3.4 3.2-7.4 3.2-12 0zM37 20c-4.6-3.2-8.6-3.2-12 0 3.4 3.2 7.4 3.2 12 0z" />
+        <path d="M8 8c4.8 1 7.2 3.4 7.6 7.6C11.4 15.2 9 12.8 8 8zM32 8c-1 4.8-3.4 7.2-7.6 7.6.4-4.2 2.8-6.6 7.6-7.6zM8 32c1-4.8 3.4-7.2 7.6-7.6-.4 4.2-2.8 6.6-7.6 7.6zM32 32c-4.8-1-7.2-3.4-7.6-7.6 4.2.4 6.6 2.8 7.6 7.6z" opacity=".85" />
+        <circle cx="20" cy="20" r="4.6" />
+      </g>
+      <circle cx="18.6" cy="18.6" r="1.4" fill="#fff4d6" opacity=".8" />
+    </svg>
+  );
+}
+
+/**
+ * Picture-frame geometry: the opening takes the largest possible area of the
+ * screen. Its shape follows the screen but never crops the 4:3 video by more
+ * than 25 % per axis (aspect 1.0–1.78). On portrait screens the opening is
+ * square and the copy sits on the wall below it.
+ */
+function layoutFrame(stage) {
+  const vw = stage.clientWidth;
+  const vh = stage.clientHeight;
+  const hdr = parseFloat(getComputedStyle(stage).getPropertyValue('--hdr')) || 64;
+  const portrait = vw / vh < 0.9;
+  const mould = portrait ? 12 : Math.round(Math.min(34, Math.max(20, vw * 0.02)));
+  const cove = portrait ? 3 : 6;
+  const brass = portrait ? 2 : 3;
+  const chrome = mould + cove + brass;
+  const side = portrait ? 10 : Math.round(Math.min(44, Math.max(14, vw * 0.024)));
+  const top = hdr + (portrait ? 6 : Math.round(Math.min(18, vw * 0.012)));
+  const bottom = portrait ? 0 : 44;
+  const aw = vw - 2 * side - 2 * chrome;
+  const ah = vh - top - bottom - 2 * chrome;
+  let ow;
+  let oh;
+  if (portrait) {
+    ow = aw;
+    oh = Math.min(aw, Math.max(220, vh - top - 2 * chrome - 300));
+  } else {
+    const aspect = Math.min(1.78, Math.max(1, aw / ah));
+    ow = Math.min(aw, ah * aspect);
+    oh = ow / aspect;
+  }
+  ow = Math.round(ow);
+  oh = Math.round(oh);
+  const ox = Math.round((vw - ow) / 2);
+  const oy = portrait ? top + chrome : Math.round(top + chrome + (ah - oh) / 2);
+  stage.dataset.layout = portrait ? 'portrait' : 'landscape';
+  const set = (k, v) => stage.style.setProperty(k, `${v}px`);
+  set('--ox', ox);
+  set('--oy', oy);
+  set('--ow', ow);
+  set('--oh', oh);
+  set('--mould', mould);
+  set('--cove', cove);
+  set('--brass', brass);
+  set('--chrome', chrome);
 }
 
 function Finale({ t, id }) {
@@ -101,7 +174,7 @@ export function TourStills() {
       <figure className="still still--intro">
         {still(0, '', true)}
         <figcaption>
-          <p className="cue__kicker">{t.intro.kicker}</p>
+          <p className="intro__kicker">{t.intro.kicker}</p>
           <h1 className="intro__title">
             {t.intro.title[0]} <span>{t.intro.title[1]}</span>
           </h1>
@@ -112,8 +185,8 @@ export function TourStills() {
         <figure className="still" key={s.id}>
           {still(s.frame, `${t.stops[s.id].kicker}`)}
           <figcaption>
-            <p className="cue__kicker">{t.stops[s.id].kicker}</p>
-            <h2 className="cue__title">{t.stops[s.id].title}</h2>
+            <h2 className="cue__name">{t.stops[s.id].kicker}</h2>
+            <p className="cue__title">{t.stops[s.id].title}</p>
             {t.stops[s.id].line ? <p className="cue__line">{t.stops[s.id].line}</p> : null}
           </figcaption>
         </figure>
@@ -137,6 +210,16 @@ export function Tour({ skipRef }) {
     return () => {
       alive = false;
     };
+  }, []);
+
+  // Frame geometry follows the stage size (also before any frame is loaded).
+  useLayoutEffect(() => {
+    const stage = root.current?.querySelector('.stage');
+    if (!stage) return undefined;
+    const ro = new ResizeObserver(() => layoutFrame(stage));
+    ro.observe(stage);
+    layoutFrame(stage);
+    return () => ro.disconnect();
   }, []);
 
   const scrollToProgress = useCallback((p) => {
@@ -171,14 +254,7 @@ export function Tour({ skipRef }) {
           width: v.width,
           height: v.height,
           focusAt: tl.focusAt,
-          minVisible: tour.minVisible,
-          bandAnchor: tour.bandAnchor,
           onFirstFrame: () => setReady(true),
-          onLayout: ({ band, top, bottom }) => {
-            el.dataset.band = band ? 'true' : 'false';
-            el.style.setProperty('--band-top', `${top}px`);
-            el.style.setProperty('--band-bottom', `${bottom}px`);
-          },
         });
 
         let target = 0;
@@ -247,27 +323,42 @@ export function Tour({ skipRef }) {
   return (
     <div className="tour" ref={root} style={{ '--len': tour.scrollLength }} data-ready={ready}>
       <div className="stage">
-        <img className="stage__poster" src={frameUrl('sm', 0)} alt="" fetchPriority="high" />
-        <canvas className="stage__canvas" role="img" aria-label={`${t.intro.title.join(' ')} ${t.intro.line}`} />
-        <div className="scrim" aria-hidden="true" />
+        <div className="frame" aria-hidden="true">
+          <span className="frame__side frame__side--top" />
+          <span className="frame__side frame__side--bottom" />
+          <span className="frame__side frame__side--left" />
+          <span className="frame__side frame__side--right" />
+          <span className="frame__cove" />
+          <span className="frame__brass" />
+          {['tl', 'tr', 'bl', 'br'].map((c) => (
+            <Corner key={c} pos={c} />
+          ))}
+        </div>
 
-        <section className="intro" aria-labelledby="intro-title">
-          <p className="cue__kicker">{t.intro.kicker}</p>
-          <h1 className="intro__title" id="intro-title">
-            {t.intro.title[0]} <span>{t.intro.title[1]}</span>
-          </h1>
-          <p className="intro__line">{t.intro.line}</p>
-          <p className="intro__hint" aria-hidden="true">
-            <span className="intro__hint-line" />
-            {t.intro.hint}
-          </p>
-        </section>
+        <div className="opening">
+          <img className="stage__poster" src={frameUrl('sm', 0)} alt="" fetchPriority="high" />
+          <canvas className="stage__canvas" role="img" aria-label={`${t.intro.title.join(' ')} ${t.intro.line}`} />
+          <div className="opening__depth" aria-hidden="true" />
+          <div className="scrim" aria-hidden="true" />
 
-        {tl.stops.map((s) => (
-          <StopText key={s.id} stop={s} text={t.stops[s.id]} />
-        ))}
+          <section className="intro" aria-labelledby="intro-title">
+            <p className="intro__kicker">{t.intro.kicker}</p>
+            <h1 className="intro__title" id="intro-title">
+              {t.intro.title[0]} <span>{t.intro.title[1]}</span>
+            </h1>
+            <p className="intro__line">{t.intro.line}</p>
+            <p className="intro__hint" aria-hidden="true">
+              <span className="intro__hint-line" />
+              {t.intro.hint}
+            </p>
+          </section>
 
-        <Finale t={t} id="final" />
+          {tl.stops.map((s) => (
+            <StopText key={s.id} stop={s} text={t.stops[s.id]} />
+          ))}
+
+          <Finale t={t} id="final" />
+        </div>
 
         <nav className="progress" aria-label={t.progress}>
           <span className="progress__track" aria-hidden="true">

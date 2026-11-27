@@ -63,8 +63,10 @@ export function buildTimeline(config, manifest) {
 
   /** 0–1 visibility of a stop's text at virtual frame v */
   const stopOpacity = (stop, v) => {
-    const rise = smooth((v - (stop.frame - before)) / (before * 0.65));
-    const fall = 1 - smooth((v - (stop.frame + after * 0.35)) / (after * 0.65));
+    const b = stop.before != null ? stop.before * fps : before;
+    const a = stop.after != null ? stop.after * fps : after;
+    const rise = smooth((v - (stop.frame - b)) / (b * 0.5));
+    const fall = 1 - smooth((v - (stop.frame + a * 0.5)) / (a * 0.5));
     return Math.min(rise, fall);
   };
 

@@ -157,6 +157,40 @@ button {
   padding-top: env(safe-area-inset-top);
   background: linear-gradient(to bottom, rgb(14 11 8 / 0.62), rgb(14 11 8 / 0.28) 60%, transparent);
 }
+.hdr--tour {
+  background: linear-gradient(to bottom, rgb(236 224 199 / 0.96), rgb(236 224 199 / 0.7) 70%, transparent);
+}
+.hdr--tour .hdr__brand,
+.hdr--tour .hdr__nav a {
+  color: var(--charcoal);
+  text-shadow: none;
+}
+.hdr--tour .hdr__brand {
+  color: var(--charcoal);
+}
+.hdr--tour .hdr__name--sub {
+  color: var(--burgundy);
+}
+.hdr--tour .hdr__nav a {
+  color: #4a3d31;
+}
+.hdr--tour .hdr__nav a:hover {
+  color: var(--burgundy);
+}
+.hdr--tour .hdr__lang button {
+  color: rgb(37 35 33 / 0.5);
+}
+.hdr--tour .hdr__lang button[aria-pressed='true'] {
+  color: var(--charcoal);
+  box-shadow: inset 0 -1.5px 0 var(--burgundy);
+}
+.hdr--tour .hdr__toggle-bars,
+.hdr--tour .hdr__toggle-bars::after {
+  background: var(--charcoal);
+}
+.hdr--tour .hdr__toggle[aria-expanded='true'] .hdr__toggle-bars {
+  background: var(--charcoal);
+}
 .hdr--page {
   background: rgb(21 18 15 / 0.92);
   -webkit-backdrop-filter: blur(10px);

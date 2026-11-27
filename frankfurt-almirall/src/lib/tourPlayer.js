@@ -11,9 +11,9 @@
  *  – Always draws one whole frame (no blending between frames: a blend of two
  *    frames reads as a soft double image). High-quality resampling. Never clears
  *    to black: if a frame is missing the nearest decoded one is shown.
- *  – Responsive framing: fills the screen (cover) around a moving focus point,
- *    but never crops more than `minVisible`; beyond that the gap is filled by a
- *    blurred extension of the same frame with feathered edges.
+ *  – Fills its canvas (cover) around a moving focus point. The page decides the
+ *    canvas shape (the opening of the picture frame), so the crop stays bounded.
+ *  – Resizes itself when the canvas element changes size (ResizeObserver).
  */
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -25,26 +25,16 @@ export function createTourPlayer(canvas, opts) {
     width: frameW,
     height: frameH,
     focusAt, // (frame) => [x, y]
-    minVisible = 0.72,
-    bandAnchor = 0.42, // vertical position of the band when the video is narrower than the screen
     keyStep = 16,
     ahead = 36,
     behind = 12,
     keep = 40,
     concurrency = 6,
     maxDpr = 2,
-    onLayout,
     onFirstFrame,
   } = opts;
 
   const ctx = canvas.getContext('2d', { alpha: false });
-  const blurCanvas = document.createElement('canvas');
-  blurCanvas.width = 48;
-  blurCanvas.height = Math.round((48 * frameH) / frameW);
-  const blurCtx = blurCanvas.getContext('2d');
-  const fg = document.createElement('canvas');
-  const fgCtx = fg.getContext('2d');
-
   const frames = new Map(); // i -> { img, ready, loading }
   const queue = new Set();
   let inflight = 0;
@@ -134,22 +124,14 @@ export function createTourPlayer(canvas, opts) {
 
   function computeLayout() {
     const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
-    const cw = Math.round(canvas.clientWidth * dpr);
-    const ch = Math.round(canvas.clientHeight * dpr);
+    const cw = Math.max(1, Math.round(canvas.clientWidth * dpr));
+    const ch = Math.max(1, Math.round(canvas.clientHeight * dpr));
     if (canvas.width !== cw || canvas.height !== ch) {
       canvas.width = cw;
       canvas.height = ch;
     }
-    const cover = Math.max(cw / frameW, ch / frameH);
-    const contain = Math.min(cw / frameW, ch / frameH);
-    const scale = Math.min(cover, contain / minVisible);
-    const dw = frameW * scale;
-    const dh = frameH * scale;
-    layout = { cw, ch, dpr, dw, dh, band: dw < cw - 1 || dh < ch - 1 };
-    if (fg.width !== Math.ceil(dw) || fg.height !== Math.ceil(dh)) {
-      fg.width = Math.ceil(Math.min(dw, cw));
-      fg.height = Math.ceil(Math.min(dh, ch));
-    }
+    const scale = Math.max(cw / frameW, ch / frameH);
+    layout = { cw, ch, dpr, dw: frameW * scale, dh: frameH * scale };
   }
 
   function placement(frame) {
@@ -157,7 +139,7 @@ export function createTourPlayer(canvas, opts) {
     const [fx, fy] = focusAt(frame);
     // overflowing axis: keep focus centred but never reveal an edge
     const x = dw > cw ? clamp(cw / 2 - fx * dw, cw - dw, 0) : (cw - dw) / 2;
-    const y = dh > ch ? clamp(ch / 2 - fy * dh, ch - dh, 0) : clamp(ch * bandAnchor - dh / 2, 0, ch - dh);
+    const y = dh > ch ? clamp(ch / 2 - fy * dh, ch - dh, 0) : (ch - dh) / 2;
     return { x, y };
   }
 
@@ -172,46 +154,11 @@ export function createTourPlayer(canvas, opts) {
     if (!force && key === drawn) return;
     drawn = key;
 
-    const { cw, ch, dw, dh, band } = layout;
-    const imgA = frames.get(a).img;
+    const { dw, dh } = layout;
     ctx.globalAlpha = 1;
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
-
-    if (band) {
-      // blurred, darkened extension of the same frame behind the band
-      blurCtx.drawImage(imgA, 0, 0, blurCanvas.width, blurCanvas.height);
-      const s = Math.max(cw / blurCanvas.width, ch / blurCanvas.height) * 1.15;
-      const bw = blurCanvas.width * s;
-      const bh = blurCanvas.height * s;
-      ctx.drawImage(blurCanvas, (cw - bw) / 2, (ch - bh) / 2, bw, bh);
-      ctx.fillStyle = 'rgba(20, 15, 11, 0.55)';
-      ctx.fillRect(0, 0, cw, ch);
-
-      // feathered foreground
-      const vx = Math.max(0, x);
-      const vy = Math.max(0, y);
-      fgCtx.globalCompositeOperation = 'source-over';
-      fgCtx.imageSmoothingEnabled = true;
-      fgCtx.imageSmoothingQuality = 'high';
-      fgCtx.clearRect(0, 0, fg.width, fg.height);
-      fgCtx.drawImage(imgA, x - vx, y - vy, dw, dh);
-      fgCtx.globalCompositeOperation = 'destination-in';
-      const vertical = dh < ch - 1;
-      const len = vertical ? fg.height : fg.width;
-      const feather = Math.round(len * 0.1);
-      const g = vertical ? fgCtx.createLinearGradient(0, 0, 0, len) : fgCtx.createLinearGradient(0, 0, len, 0);
-      g.addColorStop(0, 'rgba(0,0,0,0)');
-      g.addColorStop(feather / len, 'rgba(0,0,0,1)');
-      g.addColorStop(1 - feather / len, 'rgba(0,0,0,1)');
-      g.addColorStop(1, 'rgba(0,0,0,0)');
-      fgCtx.fillStyle = g;
-      fgCtx.fillRect(0, 0, fg.width, fg.height);
-      fgCtx.globalCompositeOperation = 'source-over';
-      ctx.drawImage(fg, vx, vy);
-    } else {
-      ctx.drawImage(imgA, x, y, dw, dh);
-    }
+    ctx.drawImage(frames.get(a).img, x, y, dw, dh);
 
     if (!firstDrawn) {
       firstDrawn = true;
@@ -221,14 +168,6 @@ export function createTourPlayer(canvas, opts) {
 
   function resize() {
     computeLayout();
-    const { dpr, dw, dh, cw, ch } = layout;
-    const { y } = placement(Math.max(0, lastFloat));
-    onLayout?.({
-      band: layout.band,
-      top: Math.max(0, y) / dpr,
-      bottom: Math.min(ch, y + dh) / dpr,
-      width: Math.min(cw, dw) / dpr,
-    });
     render(true);
   }
 
@@ -252,7 +191,8 @@ export function createTourPlayer(canvas, opts) {
   request(count - 1);
   schedule();
   lastFloat = 0;
-  window.addEventListener('resize', resize);
+  const ro = new ResizeObserver(resize);
+  ro.observe(canvas);
   resize();
 
   return {
@@ -261,7 +201,7 @@ export function createTourPlayer(canvas, opts) {
     stats: () => ({ loaded: [...frames.values()].filter((f) => f.ready).length, inflight, queued: queue.size }),
     destroy() {
       destroyed = true;
-      window.removeEventListener('resize', resize);
+      ro.disconnect();
       frames.forEach((f) => {
         f.img.src = '';
       });
