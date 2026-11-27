@@ -13,34 +13,42 @@ export const tour = {
   /** Vídeo d'origen i tram útil (segons). Després de `end` la càmera retrocedeix: no s'utilitza. */
   source: {
     file: 'videos/recorregut.mp4',
-    start: 0,
-    end: 16.33, // fotograma 392 a 24 fps: millor enquadrament de l'hamburguesa
+    start: 2.5, // fotograma 60: ja dins del local, a prop de la barra i del primer plat
+    end: 16.33, // fotograma 392: millor enquadrament de l'hamburguesa (a partir del 397 la càmera recula)
   },
 
-  /** Conversió (scripts/build-tour.mjs). Dues mides: escriptori i mòbil. */
+  /**
+   * Conversió (scripts/build-tour.mjs). Dues sèries independents:
+   *  - lg (escriptori): resolució nativa, AVIF 4:4:4 (sense pèrdua de color als rètols vermells).
+   *    `crf`: més baix = més qualitat (14 ≈ quasi transparent respecte al vídeo font).
+   *  - sm (mòbil): WebP, compatible amb tots els navegadors; també és la reserva si no hi ha AVIF.
+   * `sharpen`: realç suau només de la luminància (unsharp 5×5). 0 = cap. >0,6 crea halos.
+   */
   output: {
     dir: 'public/media/tour',
-    format: 'webp',
     variants: [
-      { name: 'lg', width: 1660, quality: 80 }, // resolució original, màxima qualitat
-      { name: 'sm', width: 960, quality: 76 }, // mòbils i pantalles petites
+      { name: 'lg', width: 1660, format: 'avif', crf: 14, sharpen: 0.45 },
+      { name: 'sm', width: 1080, format: 'webp', quality: 86, sharpen: 0.35 },
     ],
-    /** Amplada a partir de la qual es fa servir `lg` (amplada de pantalla × DPR limitat). */
+    /** Amplada dibuixada (px de dispositiu) a partir de la qual es fa servir `lg`. */
     largeFrom: 1100,
   },
 
   /** Durada del recorregut, en alçades de pantalla d'scroll. */
-  scrollLength: 11,
+  scrollLength: 9.5,
 
-  /** Suavitzat del moviment (0–1). Més baix = més cinematogràfic, més alt = més directe. */
-  smoothing: 0.11,
+  /** Suavitzat del moviment (0–1, per fotograma a 60 fps). Més baix = més inèrcia; més alt = més directe. */
+  smoothing: 0.2,
+
+  /** Alentiment al voltant de cada producte: amplada de la zona (s del vídeo). */
+  dwellWidth: 0.95,
 
   /**
    * Proporció mínima del vídeo que ha de quedar visible en cada eix.
    * En pantalles molt panoràmiques o verticals, el vídeo no es retalla més d'això:
    * l'espai sobrant s'omple amb una extensió difuminada del mateix fotograma.
    */
-  minVisible: 0.72,
+  minVisible: 0.75,
 
   /** En pantalles verticals, posició vertical del vídeo (0 = a dalt, 1 = a baix). El text va a sota. */
   bandAnchor: 0.36,
@@ -55,10 +63,10 @@ export const tour = {
    * segons el fons (light = text crema, dark = text fosc). `dwell`: quant s'alenteix l'scroll.
    */
   stops: [
-    { id: 'truita', time: 6.25, focus: [0.42, 0.56], place: 'top-left', tone: 'light', dwell: 1.6 },
-    { id: 'pernil', time: 9.45, focus: [0.55, 0.52], place: 'top-right', tone: 'dark', dwell: 1.6 },
-    { id: 'frankfurt', time: 13.2, focus: [0.53, 0.55], place: 'top-left', tone: 'light', dwell: 1.6 },
-    { id: 'burger', time: 16.0, focus: [0.55, 0.5], place: 'top-right', tone: 'dark', dwell: 1.4 },
+    { id: 'truita', time: 6.25, focus: [0.42, 0.56], place: 'top-left', tone: 'light', dwell: 0.9 },
+    { id: 'pernil', time: 9.45, focus: [0.55, 0.52], place: 'top-right', tone: 'dark', dwell: 0.9 },
+    { id: 'frankfurt', time: 13.2, focus: [0.53, 0.55], place: 'top-left', tone: 'light', dwell: 0.9 },
+    { id: 'burger', time: 16.0, focus: [0.55, 0.5], place: 'top-right', tone: 'dark', dwell: 0.8 },
   ],
 
   /** Final: apareix sobre l'últim tram, sense sortir de l'escena. */

@@ -23,7 +23,7 @@ export function buildTimeline(config, manifest) {
   const stops = config.stops.map((s) => ({ ...s, frame: toFrame(s.time) }));
   const holdFrames = Math.round(config.finale.hold * fps);
   const virtualEnd = last + holdFrames;
-  const sigma = 0.6 * fps;
+  const sigma = (config.dwellWidth ?? 0.9) * fps;
 
   // Cumulative scroll weight for every virtual frame.
   const cum = new Float64Array(virtualEnd + 1);

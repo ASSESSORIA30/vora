@@ -8,9 +8,9 @@
  *  – Frames outside the window (except key frames) are released, so memory
  *    stays bounded on phones.
  * Drawing
- *  – Sub-frame cross-fade between the two neighbouring frames for smooth motion
- *    at slow scroll speeds. Never clears to black: if a frame is missing the
- *    nearest decoded one is shown.
+ *  – Always draws one whole frame (no blending between frames: a blend of two
+ *    frames reads as a soft double image). High-quality resampling. Never clears
+ *    to black: if a frame is missing the nearest decoded one is shown.
  *  – Responsive framing: fills the screen (cover) around a moving focus point,
  *    but never crops more than `minVisible`; beyond that the gap is filled by a
  *    blurred extension of the same frame with feathered edges.
@@ -27,10 +27,10 @@ export function createTourPlayer(canvas, opts) {
     focusAt, // (frame) => [x, y]
     minVisible = 0.72,
     bandAnchor = 0.42, // vertical position of the band when the video is narrower than the screen
-    keyStep = 12,
-    ahead = 30,
+    keyStep = 16,
+    ahead = 36,
     behind = 12,
-    keep = 48,
+    keep = 40,
     concurrency = 6,
     maxDpr = 2,
     onLayout,
@@ -96,7 +96,7 @@ export function createTourPlayer(canvas, opts) {
       entry.loading = false;
       entry.ready = ok;
       if (!ok) frames.delete(i);
-      if (!destroyed && ok && Math.abs(i - current) <= 2) render(true);
+      if (!destroyed && ok && Math.abs(i - current) <= 3) render(true);
       pump();
     };
     (img.decode ? img.decode() : Promise.resolve())
@@ -161,36 +161,26 @@ export function createTourPlayer(canvas, opts) {
     return { x, y };
   }
 
-  function drawImage(target, img, x, y, w, h, alpha) {
-    target.globalAlpha = alpha;
-    target.drawImage(img, x, y, w, h);
-  }
-
   let lastFloat = -1;
   function render(force = false, frameFloat = lastFloat) {
     if (!layout || frameFloat < 0) return;
-    const f0 = Math.floor(frameFloat);
-    const t = frameFloat - f0;
-    const a = nearestReady(f0);
+    const want = Math.round(frameFloat);
+    const a = nearestReady(want);
     if (a < 0) return;
-    const bIdx = Math.min(count - 1, f0 + 1);
-    const b = a === f0 && t > 0.02 && frames.get(bIdx)?.ready ? bIdx : -1;
-    const key = `${a}|${b}|${b >= 0 ? t.toFixed(3) : 0}`;
+    const { x, y } = placement(frameFloat);
+    const key = `${a}|${x.toFixed(1)}|${y.toFixed(1)}`;
     if (!force && key === drawn) return;
     drawn = key;
 
     const { cw, ch, dw, dh, band } = layout;
-    const { x, y } = placement(frameFloat);
     const imgA = frames.get(a).img;
-    const imgB = b >= 0 ? frames.get(b).img : null;
-
     ctx.globalAlpha = 1;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
     if (band) {
       // blurred, darkened extension of the same frame behind the band
-      blurCtx.globalAlpha = 1;
       blurCtx.drawImage(imgA, 0, 0, blurCanvas.width, blurCanvas.height);
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
       const s = Math.max(cw / blurCanvas.width, ch / blurCanvas.height) * 1.15;
       const bw = blurCanvas.width * s;
       const bh = blurCanvas.height * s;
@@ -202,11 +192,10 @@ export function createTourPlayer(canvas, opts) {
       const vx = Math.max(0, x);
       const vy = Math.max(0, y);
       fgCtx.globalCompositeOperation = 'source-over';
-      fgCtx.globalAlpha = 1;
+      fgCtx.imageSmoothingEnabled = true;
+      fgCtx.imageSmoothingQuality = 'high';
       fgCtx.clearRect(0, 0, fg.width, fg.height);
-      drawImage(fgCtx, imgA, x - vx, y - vy, dw, dh, 1);
-      if (imgB) drawImage(fgCtx, imgB, x - vx, y - vy, dw, dh, t);
-      fgCtx.globalAlpha = 1;
+      fgCtx.drawImage(imgA, x - vx, y - vy, dw, dh);
       fgCtx.globalCompositeOperation = 'destination-in';
       const vertical = dh < ch - 1;
       const len = vertical ? fg.height : fg.width;
@@ -221,9 +210,7 @@ export function createTourPlayer(canvas, opts) {
       fgCtx.globalCompositeOperation = 'source-over';
       ctx.drawImage(fg, vx, vy);
     } else {
-      drawImage(ctx, imgA, x, y, dw, dh, 1);
-      if (imgB) drawImage(ctx, imgB, x, y, dw, dh, t);
-      ctx.globalAlpha = 1;
+      ctx.drawImage(imgA, x, y, dw, dh);
     }
 
     if (!firstDrawn) {

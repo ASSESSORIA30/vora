@@ -16,15 +16,29 @@ export const MOTION_QUERY = '(prefers-reduced-motion: no-preference)';
 const pad = (i) => String(i).padStart(4, '0');
 const frameUrl = (variant, i) => manifest.variants[variant].path.replace('{i}', pad(i));
 
-function pickVariant() {
+const TINY_AVIF = 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAAD5bWV0YQAAAAAAAAAvaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAFBpY3R1cmVIYW5kbGVyAAAAAA5waXRtAAAAAAABAAAAHmlsb2MAAAAARAAAAQABAAAAAQAAASEAAAAWAAAAKGlpbmYAAAAAAAEAAAAaaW5mZQIAAAAAAQAAYXYwMUNvbG9yAAAAAGppcHJwAAAAS2lwY28AAAAUaXNwZQAAAAAAAAACAAAAAgAAABBwaXhpAAAAAAMICAgAAAAMYXYxQ4EADAAAAAATY29scm5jbHgAAgACAAIAAAAAF2lwbWEAAAAAAAAAAQABBAECgwQAAAAebWRhdAoFGAA2wCAyDRgAAABQAAAAALATSyg=';
+let avifCheck;
+/** Resolves true when the browser can decode AVIF (Safari 16+, Chrome, Firefox, Edge). */
+function supportsAvif() {
+  avifCheck ??= new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img.naturalWidth > 0);
+    img.onerror = () => resolve(false);
+    img.src = TINY_AVIF;
+  });
+  return avifCheck;
+}
+
+function pickVariant(avif) {
+  const lg = manifest.variants.lg;
+  if (!lg || (lg.format === 'avif' && !avif)) return 'sm';
   // Width (in device pixels) the video will actually be drawn at, as in tourPlayer's layout.
   const { innerWidth: w, innerHeight: h } = window;
-  const { width: fw, height: fh } = manifest.variants.lg ?? manifest.variants.sm;
-  const cover = Math.max(w / fw, h / fh);
-  const contain = Math.min(w / fw, h / fh);
-  const drawn = fw * Math.min(cover, contain / tour.minVisible);
-  const need = drawn * Math.min(window.devicePixelRatio || 1, 1.5);
-  return need >= tour.output.largeFrom && manifest.variants.lg ? 'lg' : 'sm';
+  const cover = Math.max(w / lg.width, h / lg.height);
+  const contain = Math.min(w / lg.width, h / lg.height);
+  const drawn = lg.width * Math.min(cover, contain / tour.minVisible);
+  const need = drawn * Math.min(window.devicePixelRatio || 1, 2);
+  return need >= tour.output.largeFrom ? 'lg' : 'sm';
 }
 
 function StopText({ stop, text }) {
@@ -68,17 +82,19 @@ export function TourStills() {
   const { lang } = useLang();
   const t = tour.copy[lang];
   const tl = useMemo(() => buildTimeline(tour, manifest), []);
-  const still = (frame, alt, eager) => (
-    <img
-      src={frameUrl('sm', frame)}
-      srcSet={`${frameUrl('sm', frame)} ${manifest.variants.sm.width}w, ${frameUrl('lg', frame)} ${manifest.variants.lg.width}w`}
-      sizes="100vw"
-      width={manifest.variants.lg.width}
-      height={manifest.variants.lg.height}
-      alt={alt}
-      loading="eager"
-      decoding="async"
-    />
+  const lgAvif = manifest.variants.lg?.format === 'avif';
+  const still = (frame, alt) => (
+    <picture>
+      {lgAvif ? <source type="image/avif" srcSet={`${frameUrl('lg', frame)} ${manifest.variants.lg.width}w`} sizes="100vw" /> : null}
+      <img
+        src={frameUrl('sm', frame)}
+        width={manifest.variants.sm.width}
+        height={manifest.variants.sm.height}
+        alt={alt}
+        loading="eager"
+        decoding="async"
+      />
+    </picture>
   );
   return (
     <div className="stills">
@@ -113,9 +129,15 @@ export function Tour({ skipRef }) {
   const root = useRef(null);
   const tl = useMemo(() => buildTimeline(tour, manifest), []);
   const [ready, setReady] = useState(false);
-  const [variant, setVariant] = useState('sm');
+  const [variant, setVariant] = useState(null);
 
-  useEffect(() => setVariant(pickVariant()), []);
+  useEffect(() => {
+    let alive = true;
+    supportsAvif().then((avif) => alive && setVariant(pickVariant(avif)));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const scrollToProgress = useCallback((p) => {
     const st = ScrollTrigger.getById('tour');
@@ -129,6 +151,7 @@ export function Tour({ skipRef }) {
 
   useGSAP(
     () => {
+      if (!variant) return undefined;
       const mm = gsap.matchMedia();
       mm.add(MOTION_QUERY, () => {
         const el = root.current;
@@ -180,7 +203,7 @@ export function Tour({ skipRef }) {
 
         const tick = () => {
           const diff = target - shown;
-          shown = Math.abs(diff) < 0.01 ? target : shown + diff * tour.smoothing * Math.min(3, gsap.ticker.deltaRatio());
+          shown = Math.abs(diff) < 0.02 ? target : shown + diff * (1 - (1 - tour.smoothing) ** Math.min(4, gsap.ticker.deltaRatio()));
           player.setFrame(Math.min(shown, tl.last));
           setVis(intro, tl.introOpacity(shown));
           tl.stops.forEach((s, i) => setVis(cues[i], tl.stopOpacity(s, shown)));
@@ -220,20 +243,11 @@ export function Tour({ skipRef }) {
     { scope: root, dependencies: [variant, tl] },
   );
 
-  const poster = frameUrl(variant, 0);
 
   return (
     <div className="tour" ref={root} style={{ '--len': tour.scrollLength }} data-ready={ready}>
       <div className="stage">
-        <img
-          className="stage__poster"
-          src={frameUrl('sm', 0)}
-          srcSet={`${frameUrl('sm', 0)} ${manifest.variants.sm.width}w, ${frameUrl('lg', 0)} ${manifest.variants.lg.width}w`}
-          sizes="100vw"
-          alt=""
-          fetchPriority="high"
-          data-src={poster}
-        />
+        <img className="stage__poster" src={frameUrl('sm', 0)} alt="" fetchPriority="high" />
         <canvas className="stage__canvas" role="img" aria-label={`${t.intro.title.join(' ')} ${t.intro.line}`} />
         <div className="scrim" aria-hidden="true" />
 

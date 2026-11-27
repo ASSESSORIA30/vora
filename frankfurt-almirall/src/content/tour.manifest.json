@@ -1,22 +1,27 @@
 {
   "source": "videos/recorregut.mp4",
   "fps": 24,
-  "start": 0,
-  "count": 393,
+  "start": 2.5,
+  "firstSourceFrame": 60,
+  "count": 333,
   "aspect": 1.3344051446945338,
+  "sourceWidth": 1660,
+  "sourceHeight": 1244,
   "variants": {
     "lg": {
       "width": 1660,
       "height": 1244,
-      "path": "/media/tour/lg/f_{i}.webp",
-      "bytes": 39751818
+      "format": "avif",
+      "path": "/media/tour/lg/f_{i}.avif",
+      "bytes": 35486020
     },
     "sm": {
-      "width": 960,
-      "height": 720,
+      "width": 1080,
+      "height": 810,
+      "format": "webp",
       "path": "/media/tour/sm/f_{i}.webp",
-      "bytes": 18623406
+      "bytes": 27470702
     }
   },
-  "generatedAt": "2026-11-27T13:06:37.568Z"
+  "generatedAt": "2026-11-27T14:53:46.317Z"
 }

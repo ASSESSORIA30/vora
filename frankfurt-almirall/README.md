@@ -21,7 +21,7 @@ Direcció creativa i normes: skill `frankfurt-almirall` (`.agents/skills/frankfu
    npm run video
    ```
 
-   Genera `public/media/tour/{lg,sm}/f_XXXX.webp`, `public/media/og.jpg` i `src/content/tour.manifest.json`.
+   Genera `public/media/tour/lg/f_XXXX.avif`, `public/media/tour/sm/f_XXXX.webp`, `public/media/og.jpg` i `src/content/tour.manifest.json`.
 4. `npm run build` i desplega.
 
 ## Desenvolupament
@@ -40,8 +40,8 @@ npm run build
 | `src/content/tour.config.js` | **Recorregut**: vídeo, tram útil, parades, textos CAT/ES, durada, enquadrament |
 | `src/content/tour.manifest.json` | Generat per `npm run video` (nombre i mida dels fotogrames) |
 | `src/content/site.js` | Dades del negoci (adreça), capçalera i carta |
-| `scripts/build-tour.mjs` | Conversió FFmpeg → seqüències WebP (1660 px i 960 px) |
-| `src/lib/tourPlayer.js` | Reproductor de canvas: càrrega progressiva i bidireccional, memòria limitada, fosa entre fotogrames, enquadrament responsive |
+| `scripts/build-tour.mjs` | Conversió FFmpeg → escriptori AVIF 4:4:4 1660 px (CRF 14) i mòbil WebP 1080 px (q86), amb realç suau de luminància |
+| `src/lib/tourPlayer.js` | Reproductor de canvas: càrrega progressiva i bidireccional, memòria limitada, fotogrames sencers (sense barreges), enquadrament responsive |
 | `src/lib/tourTimeline.js` | Scroll → fotograma (alentiment a cada producte) i aparició dels textos |
 | `src/components/Tour.jsx` | Escena, textos, final, indicador de progrés, alternativa de moviment reduït |
 | `carta/index.html`, `src/MenuPage.jsx` | Ruta `/carta` |
