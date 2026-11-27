@@ -1,0 +1,27 @@
+{
+  "source": "videos/recorregut.mp4",
+  "fps": 24,
+  "start": 2.5,
+  "firstSourceFrame": 60,
+  "count": 333,
+  "aspect": 1.3344051446945338,
+  "sourceWidth": 1660,
+  "sourceHeight": 1244,
+  "variants": {
+    "lg": {
+      "width": 1660,
+      "height": 1244,
+      "format": "avif",
+      "path": "/media/tour/lg/f_{i}.avif",
+      "bytes": 35486020
+    },
+    "sm": {
+      "width": 1080,
+      "height": 810,
+      "format": "webp",
+      "path": "/media/tour/sm/f_{i}.webp",
+      "bytes": 27470702
+    }
+  },
+  "generatedAt": "2026-11-27T14:53:46.317Z"
+}
