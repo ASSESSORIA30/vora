@@ -49,6 +49,11 @@
       "skillPath": "skills/find-animation-opportunities/SKILL.md",
       "computedHash": ""
     },
+    "frankfurt-almirall": {
+      "source": ".agents/skills/frankfurt-almirall",
+      "sourceType": "local",
+      "computedHash": "d183b819288d30b44f9cb202c32fb6d93bf0c9f788fb5ee5762656d2f469e281"
+    },
     "gsap-core": {
       "source": "greensock/gsap-skills",
       "commit": "aed9cfd3277740755f6bfc1155c7aa645403b760",
