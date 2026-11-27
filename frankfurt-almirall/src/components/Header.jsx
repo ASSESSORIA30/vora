@@ -1,17 +1,10 @@
 import { useEffect, useState } from 'react';
+import { business } from '../content/site.js';
 import { LANGS, useLang } from '../lib/i18n.js';
-import { Star } from './Ornaments.jsx';
 
-export function Wordmark({ compact = false }) {
-  return (
-    <span className={`wordmark ${compact ? 'wordmark--compact' : ''}`}>
-      <span className="wordmark__top">Frankfurt</span>
-      <span className="wordmark__bottom">Almirall</span>
-    </span>
-  );
-}
+const LANG_LABEL = { ca: 'CAT', es: 'ES' };
 
-export function Header({ base = '' }) {
+export function Header({ onSkip, variant = 'tour' }) {
   const { lang, t, setLang } = useLang();
   const [open, setOpen] = useState(false);
 
@@ -19,73 +12,62 @@ export function Header({ base = '' }) {
     if (!open) return undefined;
     const onKey = (e) => e.key === 'Escape' && setOpen(false);
     window.addEventListener('keydown', onKey);
-    document.body.classList.add('menu-open');
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      document.body.classList.remove('menu-open');
-    };
+    return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
   const q = lang === 'ca' ? '' : `?lang=${lang}`;
-  const links = [
-    { href: `/carta/${q}`, label: t.nav.carta },
-    { href: `${base}${q}#el-local`, label: t.nav.local },
-    { href: `${base}${q}#vine`, label: t.nav.visit },
-  ];
+  const skip = onSkip
+    ? (e) => {
+        e.preventDefault();
+        setOpen(false);
+        onSkip();
+      }
+    : undefined;
+
+  const links = (
+    <>
+      <a href={`/carta/${q}`}>{t.nav.carta}</a>
+      <a href={business.address.mapsUrl} target="_blank" rel="noreferrer">
+        {t.nav.directions}
+      </a>
+      {onSkip ? (
+        <a href="#final" onClick={skip} className="hdr__skip">
+          {t.nav.skip} <span aria-hidden="true">↓</span>
+        </a>
+      ) : null}
+    </>
+  );
 
   return (
-    <header className="site-header">
+    <header className={`hdr hdr--${variant}`}>
       <a className="skip-link" href="#contingut">
         {t.nav.skipToContent}
       </a>
-      <div className="lightbox">
-        <a className="lightbox__brand" href={`/${q}`} aria-label="Frankfurt Almirall — inici">
-          <Star className="lightbox__star" />
-          <Wordmark compact />
-        </a>
+      <a className="hdr__brand" href={`/${q}`} aria-label={t.nav.home}>
+        <span className="hdr__name">Frankfurt</span>
+        <span className="hdr__name hdr__name--sub">Almirall</span>
+      </a>
 
-        <nav className="site-nav" aria-label="Principal">
-          <ul>
-            {links.map((l) => (
-              <li key={l.href}>
-                <a href={l.href}>{l.label}</a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+      <nav className="hdr__nav" aria-label="Principal">
+        {links}
+      </nav>
 
-        <div className="lang" role="group" aria-label={t.nav.langLabel}>
-          {LANGS.map((l) => (
-            <button key={l} type="button" aria-pressed={l === lang} onClick={() => setLang(l)}>
-              {l.toUpperCase()}
-            </button>
-          ))}
-        </div>
-
-        <button
-          type="button"
-          className="menu-toggle"
-          aria-expanded={open}
-          aria-controls="mobile-menu"
-          onClick={() => setOpen((v) => !v)}
-        >
-          <span className="sr-only">{open ? t.nav.menuClose : t.nav.menuOpen}</span>
-          <span className="menu-toggle__bars" aria-hidden="true" />
-        </button>
+      <div className="hdr__lang" role="group" aria-label={t.nav.langLabel}>
+        {LANGS.map((l) => (
+          <button key={l} type="button" aria-pressed={l === lang} onClick={() => setLang(l)}>
+            {LANG_LABEL[l]}
+          </button>
+        ))}
       </div>
 
-      <div id="mobile-menu" className="mobile-menu" data-open={open} hidden={!open}>
-        <ul>
-          {links.map((l, i) => (
-            <li key={l.href} style={{ '--i': i }}>
-              <a href={l.href} onClick={() => setOpen(false)}>
-                <span className="mobile-menu__n">0{i + 1}</span>
-                {l.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <button type="button" className="hdr__toggle" aria-expanded={open} aria-controls="hdr-sheet" onClick={() => setOpen((v) => !v)}>
+        <span className="sr-only">Menú</span>
+        <span aria-hidden="true" className="hdr__toggle-bars" />
+      </button>
+
+      <nav id="hdr-sheet" className="hdr__sheet" hidden={!open} aria-label="Menú">
+        {links}
+      </nav>
     </header>
   );
 }

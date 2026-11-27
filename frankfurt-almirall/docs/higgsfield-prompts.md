@@ -156,25 +156,6 @@ Very slow push-in, melted cheese settling slightly, soft light moving on the bun
 
 ## 4. Lliurament i integració a la web
 
-1. Exporta cada pla en **MP4 H.264**, 1920×1080, 24 fps, sense àudio. Desa'ls a `frankfurt-almirall/media-src/` (no es publica).
-2. Uneix els plans del recorregut i extreu els fotogrames en WebP:
-
-   ```bash
-   ffmpeg -i walk.mp4 -vf "fps=15,scale=1600:-2" -c:v libwebp -quality 72 public/media/walk/f_%04d.webp
-   ```
-
-   Amb ~22 s a 15 fps surten ~330 fotogrames (~40–70 kB cadascun). Prova també 1280 px d'amplada si el pes total és alt.
-3. Configura `media.walkFrames` a `src/content/site.js`:
-
-   ```js
-   walkFrames: {
-     count: 330,
-     path: (i) => `/media/walk/f_${String(i + 1).padStart(4, '0')}.webp`,
-     width: 1600,
-     height: 900,
-   },
-   ```
-
-   El component canvia automàticament del prototip amb foto fixa al seqüenciador de canvas: carrega només els fotogrames propers i allibera els llunyans, i limita el DPR.
-4. Per als primers plans, exporta MP4 de 720×720 (H.264, `-crf 26`, sense àudio) i un pòster WebP, i omple `media.dishes` (p. ex. `truita: { video: '/media/dish/truita.mp4', poster: '/media/dish/truita.webp' }`).
-5. Revisa la cronologia: si els plats cauen en un altre punt del vídeo, ajusta els percentatges `STATIONS` de `src/components/Walk.jsx` perquè les targetes coincideixin amb el plat que es veu.
+1. Exporta el recorregut en MP4 (H.264, 24 fps, sense àudio, la màxima resolució disponible) i desa'l a `frankfurt-almirall/videos/`.
+2. Ajusta `src/content/tour.config.js`: fitxer, final del tram útil, temps i punt d'atenció de cada parada.
+3. Executa `npm run video`: genera els fotogrames WebP en dues mides i el manifest. La web s'adapta sola.

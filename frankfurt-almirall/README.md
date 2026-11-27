@@ -6,41 +6,47 @@ Direcció creativa i normes: skill `frankfurt-almirall` (`.agents/skills/frankfu
 
 ## Estat
 
-- **Prototip privat.** Porta `noindex` i una etiqueta "Prototip v0.1". No publicar a producció sense l'aprovació de la propietat.
-- **Recorregut:** prototip amb la foto de referència i una càmera simulada (dolly-in, aturades, retorn al pla general). No és un recorregut 3D real. Quan arribi el vídeo de Higgsfield o el rodatge, s'activa el seqüenciador de fotogrames (vegeu `docs/higgsfield-prompts.md`).
-- **Plats:** il·lustracions en plats d'esmalt, en lloc de fotos. Es substitueixen omplint `media.dishes`.
-- **Dades de negoci pendents:** nom definitiu, adreça, horaris, telèfon, data d'obertura, preus, al·lèrgens. Tot és `null` a `src/content/site.js` i la web ho amaga fins que s'ompli.
+- **Previsualització privada** (`noindex`). No publicar a producció sense aprovació.
+- **Tota la web és el recorregut:** el vídeo ocupa la pantalla, queda fix i avança o retrocedeix amb l'scroll (sense reproducció automàtica). Al final: «La barra t'espera», adreça i botons.
+- **Moviment reduït:** els mateixos moments com a imatges fixes en un flux vertical.
+- `/carta`: pàgina independent amb fotogrames reals dels plats. Preus i al·lèrgens pendents.
+
+## Canviar el vídeo (sense reprogramar)
+
+1. Desa el nou MP4 a `videos/` i ajusta `source` a `src/content/tour.config.js`.
+2. Mira el vídeo i ajusta a `tour.config.js` els temps de les parades (`stops[].time`), el punt d'atenció de cada producte (`focus`), on va el text (`place`, `tone`), el final del tram útil (`source.end`) i la durada de l'scroll (`scrollLength`).
+3. Executa la conversió:
+
+   ```bash
+   npm run video
+   ```
+
+   Genera `public/media/tour/{lg,sm}/f_XXXX.webp`, `public/media/og.jpg` i `src/content/tour.manifest.json`.
+4. `npm run build` i desplega.
 
 ## Desenvolupament
 
 ```bash
 cd frankfurt-almirall
 npm install
-npm run dev      # http://localhost:5173
-npm run build    # dist/
-npm run preview  # http://localhost:4173
-npm run media    # regenera les imatges optimitzades a partir de la foto de la skill
+npm run dev
+npm run build
 ```
 
 ## Estructura
 
 | Ruta | Contingut |
 |---|---|
-| `src/content/site.js` | **Tot el contingut editable** (català/castellà, dades de negoci, mitjans) |
-| `src/components/Walk.jsx` | Recorregut amb GSAP ScrollTrigger (cronologia, càmera, targetes, carril) |
-| `src/lib/frameSequence.js` | Seqüenciador de canvas per al vídeo final (càrrega per finestra, DPR limitat) |
-| `src/components/Dish.jsx` | Il·lustracions dels plats / vídeos quan existeixin |
-| `src/components/Ornaments.jsx` | Rajola hidràulica, rajola de paret, sanefa verda, segell |
-| `src/styles/` | Estils (base, recorregut, seccions, pàgina de carta) |
-| `carta/index.html` | Ruta ràpida i estàtica de la carta (`/carta`) |
-| `docs/higgsfield-prompts.md` | Prompts audiovisuals i procés d'integració |
-
-## Comportament
-
-- **Escriptori (≥ 900 px, sense moviment reduït):** secció fixada de 6 pantalles d'scroll, reversible, amb accés immediat a la carta ("Salta el recorregut", capçalera, CTA).
-- **Mòbil i moviment reduït:** flux vertical normal (portada + quatre parades + final), sense secció fixada.
-- Idioma: català per defecte, castellà amb el selector o `?lang=es`.
+| `src/content/tour.config.js` | **Recorregut**: vídeo, tram útil, parades, textos CAT/ES, durada, enquadrament |
+| `src/content/tour.manifest.json` | Generat per `npm run video` (nombre i mida dels fotogrames) |
+| `src/content/site.js` | Dades del negoci (adreça), capçalera i carta |
+| `scripts/build-tour.mjs` | Conversió FFmpeg → seqüències WebP (1660 px i 960 px) |
+| `src/lib/tourPlayer.js` | Reproductor de canvas: càrrega progressiva i bidireccional, memòria limitada, fosa entre fotogrames, enquadrament responsive |
+| `src/lib/tourTimeline.js` | Scroll → fotograma (alentiment a cada producte) i aparició dels textos |
+| `src/components/Tour.jsx` | Escena, textos, final, indicador de progrés, alternativa de moviment reduït |
+| `carta/index.html`, `src/MenuPage.jsx` | Ruta `/carta` |
+| `videos/` | Vídeo original (no es publica: `.vercelignore`) |
 
 ## Desplegament (Vercel)
 
-Projecte separat amb **Root Directory = `frankfurt-almirall`**, framework Vite, sortida `dist`. `vercel.json` hi afegeix capçaleres de memòria cau i `X-Robots-Tag: noindex`.
+Projecte independent `frankfurt-almirall` (equip assessoria30s-projects), Root Directory `frankfurt-almirall`, Vite, sortida `dist`.
